@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 320" width="100%" height="100%">
+  <defs>
+    <!-- Base Jelly Green Linear Gradient -->
+    <linearGradient id="mainJellyGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a2e022" />
+      <stop offset="35%" stop-color="#84cc16" />
+      <stop offset="75%" stop-color="#65a30d" />
+      <stop offset="100%" stop-color="#4d7c0f" />
+    </linearGradient>
+
+    <!-- Glossy Radial Reflection -->
+    <radialGradient id="jellyGlow" cx="30%" cy="25%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="40%" stop-color="#bef264" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#84cc16" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- White Top Specular Highlight Gradient -->
+    <linearGradient id="specularHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0" />
+    </linearGradient>
+
+    <!-- Pudding Body Gradient -->
+    <linearGradient id="puddingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#bef264" />
+      <stop offset="50%" stop-color="#84cc16" />
+      <stop offset="100%" stop-color="#558b0f" />
+    </linearGradient>
+
+    <!-- Realistic Soft Floor Drop Shadow -->
+    <filter id="cincauDropShadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="8" flood-color="#1e3a02" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <!-- Main Shadowed Container -->
+  <g filter="url(#cincauDropShadow)">
+
+    <!-- ================= LETTER C ================= -->
+    <g>
+      <!-- Base Shape -->
+      <path d="M 130 90 C 80 90 40 128 40 180 C 40 232 80 270 130 270 C 165 270 190 252 200 228 C 203 221 193 216 186 220 C 174 227 155 236 130 236 C 98 236 74 212 74 180 C 74 148 98 124 130 124 C 155 124 174 133 186 140 C 193 144 203 139 200 132 C 190 108 165 90 130 90 Z" fill="url(#mainJellyGreen)" />
+      <!-- Specular Highlight Arc -->
+      <path d="M 130 97 C 88 97 52 130 52 178 C 52 181 57 181 58 178 C 65 142 94 109 130 109 C 153 109 171 118 181 124 C 183 125 185 123 184 121 C 172 112 153 97 130 97 Z" fill="url(#specularHighlight)" />
+      <ellipse cx="115" cy="115" rx="35" ry="12" fill="url(#jellyGlow)" transform="rotate(-15 115 115)" />
+    </g>
+
+    <!-- ================= LETTER i ================= -->
+    <g>
+      <!-- Jelly Dot -->
+      <circle cx="232" cy="110" r="18" fill="url(#mainJellyGreen)" />
+      <circle cx="226" cy="103" r="6" fill="#ffffff" opacity="0.85" />
+      <ellipse cx="232" cy="110" rx="14" ry="14" fill="url(#jellyGlow)" />
+
+      <!-- Stem -->
+      <rect x="214" y="142" width="36" height="128" rx="18" fill="url(#mainJellyGreen)" />
+      <!-- Stem Specular Highlight -->
+      <path d="M 222 150 L 242 150 C 246 150 246 200 238 220 C 228 220 222 170 222 150 Z" fill="url(#specularHighlight)" />
+    </g>
+
+    <!-- ================= LETTER n ================= -->
+    <g>
+      <!-- Outer Path -->
+      <path d="M 272 142 C 262 142 254 150 254 160 L 254 252 C 254 262 284 262 284 252 L 284 200 C 284 176 298 164 318 164 C 338 164 348 176 348 200 L 348 252 C 348 262 378 262 378 252 L 378 194 C 378 158 354 142 320 142 C 300 142 288 152 280 162 L 280 160 C 280 150 272 142 272 142 Z" fill="url(#mainJellyGreen)" />
+      <!-- Top Arch Highlight -->
+      <path d="M 320 148 C 344 148 368 160 368 190 L 368 200 C 362 175 344 160 320 160 C 304 160 292 170 284 182 L 284 168 C 294 154 306 148 320 148 Z" fill="url(#specularHighlight)" />
+    </g>
+
+    <!-- ================= LETTER c ================= -->
+    <g>
+      <path d="M 430 142 C 390 142 360 172 360 210 C 360 248 390 270 430 270 C 458 270 476 256 484 238 C 487 231 477 226 470 230 C 460 235 448 242 430 242 C 408 242 390 228 390 210 C 390 192 408 170 430 170 C 448 170 460 176 470 181 C 477 185 487 180 484 173 C 476 155 458 142 430 142 Z" fill="url(#mainJellyGreen)" />
+      <path d="M 430 148 C 398 148 372 174 372 206 C 372 208 376 208 377 206 C 384 180 406 158 430 158 C 448 158 462 165 470 170 C 472 171 474 169 473 167 C 464 158 448 148 430 148 Z" fill="url(#specularHighlight)" />
+    </g>
+
+    <!-- ================= LETTER a ================= -->
+    <g>
+      <path d="M 540 142 C 504 142 478 168 478 206 C 478 244 504 270 540 270 C 556 270 570 262 578 250 L 578 252 C 578 262 604 262 604 252 L 604 160 C 604 150 580 142 540 142 Z M 540 172 C 560 172 574 186 574 206 C 574 226 560 240 540 240 C 520 240 508 226 508 206 C 508 186 520 172 540 172 Z" fill="url(#mainJellyGreen)" />
+      <path d="M 540 148 C 512 148 488 170 488 202 C 488 204 492 204 493 202 C 500 178 520 158 540 158 C 568 158 594 170 594 182 C 594 166 570 148 540 148 Z" fill="url(#specularHighlight)" />
+    </g>
+
+    <!-- ================= LETTER u WITH CUTE JELLY MASCOT ================= -->
+    <g>
+      <!-- Letter u Body -->
+      <path d="M 618 160 C 618 150 644 150 644 160 L 644 215 C 644 228 656 238 672 238 C 688 238 700 228 700 215 L 700 160 C 700 150 726 150 726 160 L 726 242 C 726 262 698 270 672 270 C 642 270 618 252 618 228 Z" fill="url(#mainJellyGreen)" />
+      <path d="M 624 165 L 636 165 L 636 215 C 636 232 650 246 672 246 C 682 246 692 240 698 232 L 698 220 C 698 228 686 232 672 232 C 652 232 642 222 642 208 L 642 165 Z" fill="url(#specularHighlight)" />
+
+      <!-- CUTE JELLY FLAN / PUDDING MASCOT RIDING ON TOP RIGHT OF 'u' -->
+      <g transform="translate(620, 52)">
+        <!-- Pudding Body -->
+        <path d="M 22 30 C 22 16, 34 8, 56 8 C 78 8, 90 16, 90 30 L 98 62 C 101 70, 92 78, 80 78 L 32 78 C 20 78, 11 70, 14 62 Z" fill="url(#puddingGrad)" stroke="#4d7c0f" stroke-width="2" />
+        
+        <!-- Top Rim Glossy Reflection -->
+        <ellipse cx="56" cy="20" rx="28" ry="9" fill="#ecfccb" opacity="0.65" />
+        <ellipse cx="56" cy="17" rx="20" ry="6" fill="#ffffff" opacity="0.9" />
+
+        <!-- Eyes -->
+        <circle cx="42" cy="45" r="5.5" fill="#0f172a" />
+        <circle cx="40" cy="42.5" r="2" fill="#ffffff" />
+        <circle cx="70" cy="45" r="5.5" fill="#0f172a" />
+        <circle cx="68" cy="42.5" r="2" fill="#ffffff" />
+
+        <!-- Rosy Blush Cheeks -->
+        <ellipse cx="32" cy="50" rx="5" ry="3" fill="#f43f5e" opacity="0.45" />
+        <ellipse cx="80" cy="50" rx="5" ry="3" fill="#f43f5e" opacity="0.45" />
+
+        <!-- Smiling Mouth -->
+        <path d="M 50 52 Q 56 60 62 52" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round" />
+      </g>
+    </g>
+
+  </g>
+</svg>

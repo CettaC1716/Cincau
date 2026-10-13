@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Pink Baby Jelly Gradient -->
+    <linearGradient id="pinkBabyJelly" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="50%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#be185d"/>
+    </linearGradient>
+
+    <!-- Gloss Highlight -->
+    <linearGradient id="pinkBabySpecular" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Cheek Radial Glow -->
+    <radialGradient id="pinkGlowCheek" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff0066" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#ff0066" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="pinkShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#be185d" flood-opacity="0.4"/>
+    </filter>
+
+    <clipPath id="pinkLeftEyeClip">
+      <ellipse cx="70" cy="105" rx="18" ry="26"/>
+    </clipPath>
+    <clipPath id="pinkRightEyeClip">
+      <ellipse cx="130" cy="105" rx="18" ry="26"/>
+    </clipPath>
+  </defs>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="185" rx="70" ry="8" fill="#be185d" opacity="0.25"/>
+
+  <!-- Baby Pink Body -->
+  <path d="M 20, 180 C 15, 110 30, 40 100, 32 C 170, 40 185, 110 180, 180 Z" fill="url(#pinkBabyJelly)" filter="url(#pinkShadow)"/>
+
+  <!-- Top Gloss Highlight -->
+  <path d="M 35, 100 C 40, 50 60, 42 100, 40 C 70, 50 45, 70 42, 110 Z" fill="url(#pinkBabySpecular)"/>
+  <ellipse cx="50" cy="70" rx="9" ry="18" transform="rotate(-20 50 70)" fill="#ffffff" opacity="0.6"/>
+
+  <!-- Cute Flower Hair Clip on top right -->
+  <g transform="translate(140, 42) scale(0.7)">
+    <circle cx="0" cy="0" r="8" fill="#facc15"/>
+    <circle cx="-12" cy="0" r="7" fill="#ffffff"/>
+    <circle cx="12" cy="0" r="7" fill="#ffffff"/>
+    <circle cx="0" cy="-12" r="7" fill="#ffffff"/>
+    <circle cx="0" cy="12" r="7" fill="#ffffff"/>
+    <circle cx="0" cy="0" r="6" fill="#fbbf24"/>
+  </g>
+
+  <!-- Cheeks -->
+  <ellipse cx="45" cy="132" rx="14" ry="9" fill="url(#pinkGlowCheek)"/>
+  <ellipse cx="155" cy="132" rx="14" ry="9" fill="url(#pinkGlowCheek)"/>
+
+  <!-- LEFT EYE -->
+  <g id="leftEye">
+    <ellipse cx="70" cy="105" rx="18" ry="26" fill="#ffffff"/>
+    <g clip-path="url(#pinkLeftEyeClip)">
+      <ellipse cx="72" cy="105" rx="11" ry="15" fill="#0f172a"/>
+      <circle cx="68" cy="98" r="4" fill="#ffffff" opacity="0.95"/>
+      <circle cx="75" cy="110" r="2" fill="#ffffff" opacity="0.8"/>
+    </g>
+  </g>
+
+  <!-- RIGHT EYE -->
+  <g id="rightEye">
+    <ellipse cx="130" cy="105" rx="18" ry="26" fill="#ffffff"/>
+    <g clip-path="url(#pinkRightEyeClip)">
+      <ellipse cx="132" cy="105" rx="11" ry="15" fill="#0f172a"/>
+      <circle cx="128" cy="98" r="4" fill="#ffffff" opacity="0.95"/>
+      <circle cx="135" cy="110" r="2" fill="#ffffff" opacity="0.8"/>
+    </g>
+  </g>
+
+  <!-- CUTE HAPPY MOUTH -->
+  <path d="M 88, 138 Q 100, 164 112, 138 Q 100, 146 88, 138 Z" fill="#0f172a"/>
+  <path d="M 94, 148 Q 100, 158 106, 148 Z" fill="#ff4081"/>
+</svg>

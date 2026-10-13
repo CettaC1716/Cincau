@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-mobile-lg: 430px;
+  --breakpoint-tablet: 600px;
+  --breakpoint-tablet-md: 768px;
+  --breakpoint-tablet-lg: 900px;
+  --breakpoint-desktop: 1100px;
+}
+
+@layer utilities {
+  .font-handwriting {
+    font-family: 'Caveat', cursive;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  /* Accessible Touch Target Utility for SD Kids (Min 44px mobile, 48px tablet) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .touch-target-tablet {
+    min-height: 48px;
+    min-width: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Ensure mobile and horizontal orientations fill 100% fullscreen with zero scroll requirement */
+@media (orientation: landscape) or (max-height: 620px) {
+  .landscape-mobile-fill {
+    padding: 0 !important;
+  }
+  .landscape-mobile-capsule {
+    height: 100% !important;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    border-width: 0 !important;
+    box-shadow: none !important;
+  }
+  .modal-short-landscape {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    border-width: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Custom scrollbars for notes list */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

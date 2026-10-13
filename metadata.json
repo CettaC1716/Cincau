@@ -1,0 +1,11 @@
+{
+  "name": "Cincau : teman bealajar AI",
+  "description": "Charvi — Interactive notes and AI educational companion app featuring an expressive animated mascot that emerges from the bottom and reacts to your thoughts and notes.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

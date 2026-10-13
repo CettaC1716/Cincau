@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Yellow Baby Jelly Gradient -->
+    <linearGradient id="yellowBabyJelly" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+
+    <!-- Gloss Highlight -->
+    <linearGradient id="yellowBabySpecular" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Cheek Radial Glow -->
+    <radialGradient id="yellowPinkCheek" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff4081" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#ff4081" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="yellowShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#ca8a04" flood-opacity="0.4"/>
+    </filter>
+
+    <clipPath id="yellowLeftEyeClip">
+      <ellipse cx="70" cy="105" rx="18" ry="26"/>
+    </clipPath>
+    <clipPath id="yellowRightEyeClip">
+      <ellipse cx="130" cy="105" rx="18" ry="26"/>
+    </clipPath>
+  </defs>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="100" cy="185" rx="70" ry="8" fill="#ca8a04" opacity="0.25"/>
+
+  <!-- Baby Yellow Body -->
+  <path d="M 20, 180 C 15, 110 30, 40 100, 32 C 170, 40 185, 110 180, 180 Z" fill="url(#yellowBabyJelly)" filter="url(#yellowShadow)"/>
+
+  <!-- Top Gloss Highlight -->
+  <path d="M 35, 100 C 40, 50 60, 42 100, 40 C 70, 50 45, 70 42, 110 Z" fill="url(#yellowBabySpecular)"/>
+  <ellipse cx="50" cy="70" rx="9" ry="18" transform="rotate(-20 50 70)" fill="#ffffff" opacity="0.6"/>
+
+  <!-- Star Sparkle on top -->
+  <path d="M 100, 15 L 103, 25 L 113, 28 L 103, 31 L 100, 41 L 97, 31 L 87, 28 L 97, 25 Z" fill="#ffffff" opacity="0.9"/>
+
+  <!-- Cheeks -->
+  <ellipse cx="45" cy="132" rx="14" ry="9" fill="url(#yellowPinkCheek)"/>
+  <ellipse cx="155" cy="132" rx="14" ry="9" fill="url(#yellowPinkCheek)"/>
+
+  <!-- LEFT EYE -->
+  <g id="leftEye">
+    <ellipse cx="70" cy="105" rx="18" ry="26" fill="#ffffff"/>
+    <g clip-path="url(#yellowLeftEyeClip)">
+      <ellipse cx="72" cy="105" rx="11" ry="15" fill="#0f172a"/>
+      <circle cx="68" cy="98" r="4" fill="#ffffff" opacity="0.95"/>
+      <circle cx="75" cy="110" r="2" fill="#ffffff" opacity="0.8"/>
+    </g>
+  </g>
+
+  <!-- RIGHT EYE -->
+  <g id="rightEye">
+    <ellipse cx="130" cy="105" rx="18" ry="26" fill="#ffffff"/>
+    <g clip-path="url(#yellowRightEyeClip)">
+      <ellipse cx="132" cy="105" rx="11" ry="15" fill="#0f172a"/>
+      <circle cx="128" cy="98" r="4" fill="#ffffff" opacity="0.95"/>
+      <circle cx="135" cy="110" r="2" fill="#ffffff" opacity="0.8"/>
+    </g>
+  </g>
+
+  <!-- CUTE EXCITED MOUTH -->
+  <path d="M 88, 136 Q 100, 166 112, 136 Z" fill="#0f172a"/>
+  <path d="M 94, 146 Q 100, 158 106, 146 Z" fill="#ff4081"/>
+</svg>
