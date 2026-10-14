@@ -37,6 +37,9 @@ export interface ChildProfile {
   learningGoals?: string[];
   playDuration?: string;
   skills?: string[];
+  gender?: 'boy' | 'girl';
+  stickers?: string[];
+  memberId?: string;
   hasOwnDevice?: boolean;
   voiceInteractionEnabled?: boolean;
   parentEmail?: string;

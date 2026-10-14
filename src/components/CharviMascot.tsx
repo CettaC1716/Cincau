@@ -16,47 +16,48 @@ interface CharviMascotProps {
   onEmotionChange?: (emotion: CharviEmotion) => void;
 }
 
-const getEmotionGradient = (emo: CharviEmotion, theme: MascotTheme = 'cyan-jelly') => {
+const getEmotionGradient = (emo: CharviEmotion, theme: MascotTheme = 'cyan-jelly', mascotId: string = '') => {
+  const sfx = mascotId ? `_${mascotId}` : '';
   switch (emo) {
     case 'happy':
-      return 'url(#charviYellowJelly)'; // Kuning ceria pasca-makan
+      return `url(#charviYellowJelly${sfx})`; // Kuning ceria pasca-makan
     case 'angry':
     case 'pouty':
     case 'annoyed':
-      return 'url(#charviRedJelly)'; // Merah menyala saat ditekan >5x
+      return `url(#charviRedJelly${sfx})`; // Merah menyala saat ditekan >5x
     case 'excited':
-      return 'url(#charviPinkJelly)'; // Pink cerah saat interaksi & diberi makan
+      return `url(#charviPinkJelly${sfx})`; // Pink cerah saat interaksi & diberi makan
     case 'celebrating':
-      return 'url(#charviEmeraldJelly)'; // Hijau zamrud selebrasi
+      return `url(#charviEmeraldJelly${sfx})`; // Hijau zamrud selebrasi
     case 'thinking':
-      return 'url(#charviCyanJelly)'; // Toska / cyan cerah berpikir
+      return `url(#charviCyanJelly${sfx})`; // Toska / cyan cerah berpikir
     case 'surprised':
-      return 'url(#charviOrangeJelly)'; // Oranye manis kagum
+      return `url(#charviOrangeJelly${sfx})`; // Oranye manis kagum
     case 'sleepy':
-      return 'url(#charviIndigoJelly)'; // Indigo malam mengantuk
+      return `url(#charviIndigoJelly${sfx})`; // Indigo malam mengantuk
     case 'proud':
-      return 'url(#charviGoldJelly)'; // Emas kemilau bangga
+      return `url(#charviGoldJelly${sfx})`; // Emas kemilau bangga
     case 'giggle':
-      return 'url(#charviPeachJelly)'; // Coral peach geli
+      return `url(#charviPeachJelly${sfx})`; // Coral peach geli
     case 'bored':
-      return 'url(#charviPurpleJelly)'; // Ungu saat merasa bosan
+      return `url(#charviPurpleJelly${sfx})`; // Ungu saat merasa bosan
     case 'sad':
-      return 'url(#charviBlueJelly)';
+      return `url(#charviBlueJelly${sfx})`;
     case 'idle':
     default:
       // Respect the distinct theme color when idle
       switch (theme) {
         case 'emerald-mint':
-          return 'url(#charviEmeraldJelly)';
+          return `url(#charviEmeraldJelly${sfx})`;
         case 'berry-purple':
-          return 'url(#charviBerryJelly)';
+          return `url(#charviBerryJelly${sfx})`;
         case 'sunny-banana':
-          return 'url(#charviBananaJelly)';
+          return `url(#charviBananaJelly${sfx})`;
         case 'classic-orange':
-          return 'url(#charviOrangeJelly)';
+          return `url(#charviOrangeJelly${sfx})`;
         case 'cyan-jelly':
         default:
-          return 'url(#charviBlueJelly)';
+          return `url(#charviBlueJelly${sfx})`;
       }
   }
 };
