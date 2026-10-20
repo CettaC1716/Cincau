@@ -1,29 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, 
   ChevronLeft, 
   Check, 
-  Star, 
   ShieldCheck, 
-  BookOpen, 
-  Gamepad2, 
   Lock, 
   Mail, 
   ArrowRight,
-  Smile,
-  X,
   RotateCcw,
-  Clock,
-  Heart,
   Award,
-  Calendar,
-  Compass
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CharviMascot } from './CharviMascot';
 import { ChildProfile, MascotTheme, CharviEmotion } from '../types';
 import { playPopSound, playCheerSound } from '../utils/audioEffects';
+import { MemberCard } from './MemberCard';
+import { INTEREST_STICKERS } from '../data/stickers';
 
 interface KidsRegistrationModalProps {
   isOpen: boolean;
@@ -33,22 +26,6 @@ interface KidsRegistrationModalProps {
   initialProfile?: ChildProfile | null;
   initialStep?: number;
 }
-
-// 12 Interactive Activity Stickers (Inspired by Pawchi's sticker board)
-const INTEREST_STICKERS = [
-  { id: 'stories', name: 'Dongeng Hewan', icon: '📚', color: 'from-amber-100 to-orange-100 border-amber-300 text-amber-900', rotation: '-rotate-2' },
-  { id: 'math', name: 'Berhitung Cepat', icon: '🔢', color: 'from-sky-100 to-blue-100 border-sky-300 text-sky-900', rotation: 'rotate-3' },
-  { id: 'drawing', name: 'Melukis Warna', icon: '🎨', color: 'from-pink-100 to-rose-100 border-pink-300 text-pink-900', rotation: '-rotate-3' },
-  { id: 'science', name: 'Eksplorasi Sains', icon: '🧪', color: 'from-emerald-100 to-teal-100 border-emerald-300 text-emerald-900', rotation: 'rotate-2' },
-  { id: 'music', name: 'Lagu & Musik', icon: '🎵', color: 'from-purple-100 to-indigo-100 border-purple-300 text-purple-900', rotation: '-rotate-1' },
-  { id: 'puzzles', name: 'Teka-Teki Logika', icon: '🧩', color: 'from-yellow-100 to-amber-100 border-yellow-300 text-yellow-900', rotation: 'rotate-4' },
-  { id: 'nature', name: 'Alam & Satwa', icon: '🌿', color: 'from-green-100 to-emerald-100 border-green-300 text-green-900', rotation: '-rotate-4' },
-  { id: 'fruit', name: 'Tangkap Buah', icon: '🍎', color: 'from-red-100 to-orange-100 border-red-300 text-red-900', rotation: 'rotate-1' },
-  { id: 'robots', name: 'Robotik Cilik', icon: '🤖', color: 'from-cyan-100 to-sky-100 border-cyan-300 text-cyan-900', rotation: '-rotate-2' },
-  { id: 'space', name: 'Luar Angkasa', icon: '🚀', color: 'from-indigo-100 to-violet-100 border-indigo-300 text-indigo-900', rotation: 'rotate-3' },
-  { id: 'sports', name: 'Gerak & Olahraga', icon: '⚽', color: 'from-lime-100 to-emerald-100 border-lime-300 text-lime-900', rotation: '-rotate-3' },
-  { id: 'words', name: 'Bahasa Nusantara', icon: '🗣️', color: 'from-orange-100 to-amber-100 border-orange-300 text-orange-900', rotation: 'rotate-2' },
-];
 
 // Quick name suggestions (Pawchi style suggestion chips)
 const NAME_SUGGESTIONS = ['Bintang', 'Langit', 'Pelangi', 'Cahaya', 'Jagoan', 'Alana'];
@@ -61,7 +38,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
   initialProfile,
   initialStep = 0,
 }) => {
-  // 0: Intro Splash, 1: Nametag Card, 2: Gender/Role, 3: Learning Fase, 4: Sticker Board, 5: Daily Screen Time Ruler, 6: Parent Shield, 7: Sunrise Run, 8: 3D Member Card
+  // 0: Intro Splash, 1: Nametag Card, 2: Gender/Role, 3: Birthday Certificate, 4: Learning Fase, 5: Sticker Board, 6: Daily Screen Time Ruler, 7: Parent Shield, 8: Sunrise Run, 9: 3D Member Card
   const [step, setStep] = useState<number>(initialStep);
 
   useEffect(() => {
@@ -73,6 +50,14 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
   // Form State
   const [childName, setChildName] = useState<string>(initialProfile?.name || '');
   const [gender, setGender] = useState<'boy' | 'girl'>(initialProfile?.gender || 'boy');
+  const [birthDate, setBirthDate] = useState<{ day: number; month: number; year: number }>(
+    initialProfile?.birthDate || { day: 1, month: 1, year: 2018 }
+  );
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
+  const [pickerDay, setPickerDay] = useState<number>(birthDate.day);
+  const [pickerMonth, setPickerMonth] = useState<number>(birthDate.month);
+  const [pickerYear, setPickerYear] = useState<number>(birthDate.year);
+
   const [fase, setFase] = useState<'A' | 'B' | 'C'>(initialProfile?.fase || 'A');
   const [selectedStickers, setSelectedStickers] = useState<string[]>(
     initialProfile?.stickers || ['stories', 'math', 'drawing']
@@ -87,11 +72,12 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
   // Sunrise Run Interstitial states
   const [runProgress, setRunProgress] = useState<number>(0);
   const [runStatusIndex, setRunStatusIndex] = useState<number>(0);
+  const [mascotEmotion, setMascotEmotion] = useState<CharviEmotion>('excited');
 
-  // Mascot dynamic emotion
-  const [mascotEmotion, setMascotEmotion] = useState<CharviEmotion>('happy');
 
-  const totalWorkflowSteps = 8;
+
+  const totalWorkflowSteps = 9;
+
 
   // Trigger celebration confetti
   const triggerConfetti = () => {
@@ -112,15 +98,16 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
     if (step === 0) setMascotEmotion('excited');
     else if (step === 1) setMascotEmotion(childName.trim() ? 'happy' : 'listening');
     else if (step === 2) setMascotEmotion('happy');
-    else if (step === 3) setMascotEmotion('proud');
-    else if (step === 4) setMascotEmotion('excited');
-    else if (step === 5) setMascotEmotion('encouraging');
-    else if (step === 6) setMascotEmotion('thinking');
-    else if (step === 7) setMascotEmotion('celebrating');
+    else if (step === 3) setMascotEmotion('excited');
+    else if (step === 4) setMascotEmotion('proud');
+    else if (step === 5) setMascotEmotion('excited');
+    else if (step === 6) setMascotEmotion('encouraging');
+    else if (step === 7) setMascotEmotion('thinking');
     else if (step === 8) setMascotEmotion('celebrating');
+    else if (step === 9) setMascotEmotion('celebrating');
   }, [step, childName]);
 
-  // Sunrise Run Animation Progress Loop (Step 7)
+  // Sunrise Run Animation Progress Loop (Step 8)
   const RUN_MESSAGES = [
     `Cincau sedang mengemas perlengkapan petualangan ${childName || 'si kecil'}... 🎒`,
     `Menempelkan ${selectedStickers.length} stiker minat ke buku petualang... ✨`,
@@ -131,7 +118,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
   ];
 
   useEffect(() => {
-    if (step === 7) {
+    if (step === 8) {
       setRunProgress(0);
       setRunStatusIndex(0);
 
@@ -143,7 +130,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
             setTimeout(() => {
               playCheerSound();
               triggerConfetti();
-              setStep(8); // Go to 3D Card Reveal
+              setStep(9); // Go to 3D Card Reveal
             }, 500);
             return 100;
           }
@@ -172,12 +159,12 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
 
   const handleNext = () => {
     playPopSound();
-    if (step === 6) {
+    if (step === 7) {
       // From Parent Shield to Sunrise Run Transition
-      setStep(7);
+      setStep(8);
       return;
     }
-    if (step === 8) {
+    if (step === 9) {
       // Finish registration!
       finishRegistration();
       return;
@@ -187,7 +174,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
 
   const handleBack = () => {
     playPopSound();
-    if (step > 0 && step !== 7) {
+    if (step > 0 && step !== 8) {
       setStep((prev) => prev - 1);
     } else {
       onClose();
@@ -200,6 +187,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
     const finalProfile: ChildProfile = {
       name: childName.trim() || 'Bintang',
       gender,
+      birthDate: birthDate || { day: 1, month: 1, year: 2018 },
       fase,
       favoriteSubject: selectedStickers[0] || 'Dongeng & Cerita',
       learningGoals: selectedStickers.map(
@@ -251,10 +239,10 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               <div className="w-11" />
             )}
 
-            {/* Pawchi Style Progress Dots / Indicators (Steps 1 to 6) */}
-            {step > 0 && step <= 6 && (
+            {/* Pawchi Style Progress Dots / Indicators (Steps 1 to 7) */}
+            {step > 0 && step <= 7 && (
               <div className="flex items-center gap-1.5 bg-amber-100/70 px-3 py-1.5 rounded-full border border-amber-200/60">
-                {[1, 2, 3, 4, 5, 6].map((dot) => (
+                {[1, 2, 3, 4, 5, 6, 7].map((dot) => (
                   <div
                     key={dot}
                     className={`transition-all duration-300 rounded-full ${
@@ -273,7 +261,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
             <button
               onClick={() => {
                 playPopSound();
-                if (step === 0 || step === 8) {
+                if (step === 0 || step === 9) {
                   onClose();
                 } else {
                   finishRegistration();
@@ -281,7 +269,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               }}
               className="min-h-[44px] flex items-center text-xs font-bold text-amber-900/60 hover:text-amber-950 px-3 py-1.5 rounded-full hover:bg-amber-100/50 transition-colors cursor-pointer"
             >
-              {step === 0 ? 'Tutup' : step === 8 ? 'Selesai' : 'Lewati'}
+              {step === 0 ? 'Tutup' : step === 9 ? 'Selesai' : 'Lewati'}
             </button>
           </div>
         )}
@@ -305,7 +293,7 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
                     <div className="w-32 h-32 tablet:w-40 tablet:h-40 bg-[#FFF7ED] rounded-[32px] border-3 border-amber-300 flex items-center justify-center shadow-md relative overflow-hidden">
                       <CharviMascot
                         variant="compact-header"
-                        emotion="excited"
+                        emotion={mascotEmotion}
                         theme={mascotTheme}
                         className="w-28 h-28 tablet:w-34 tablet:h-34 drop-shadow-md"
                       />
@@ -361,34 +349,35 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
                     Tuliskan di kartu petualang kecil ini!
                   </p>
 
-                  {/* Tactile Stitched Passport Card */}
-                  <div className="mt-4 bg-white rounded-3xl p-5 border-3 border-dashed border-amber-300 shadow-md relative max-w-sm mx-auto overflow-hidden">
-                    <div className="flex items-center justify-between pb-2 border-b border-amber-100">
-                      <span className="text-[10px] font-black uppercase text-amber-700 tracking-wider">
-                        KARTU PETUALANG CILIK
+                  {/* Aesthetic Memo Board style Input Card */}
+                  <div className="mt-6 bg-[#FFFDF5] rounded-[24px] p-6 tablet:p-8 border-4 border-[#5C4033] shadow-[0_20px_60px_rgba(92,64,51,0.25)] relative max-w-[340px] tablet:max-w-[400px] mx-auto overflow-visible group">
+                    {/* Yellow Sticky Tape at Top Left */}
+                    <div className="absolute -top-3.5 left-6 w-24 h-7 bg-amber-300 shadow-sm rotate-[-2deg] rounded-xs border border-amber-400/60 z-20" />
+
+                    <div className="text-left mb-1">
+                      <span className="text-[10px] tablet:text-xs font-black uppercase text-[#5C4033]/60 tracking-[0.2em] font-handwriting">
+                        NAMA PETUALANG
                       </span>
-                      <span className="text-xs">🌿</span>
                     </div>
 
-                    <div className="py-4">
+                    <div className="relative py-2">
                       <input
                         type="text"
                         value={childName}
                         onChange={(e) => setChildName(e.target.value)}
-                        placeholder="Ketik nama..."
+                        placeholder="Ketik namamu..."
                         autoFocus
-                        className="w-full text-center text-2xl tablet:text-3xl font-black text-neutral-900 bg-transparent outline-none placeholder:text-neutral-300"
+                        className="w-full text-left text-3xl tablet:text-4xl font-black text-[#2D2D2D] bg-transparent outline-none placeholder:text-neutral-300 font-handwriting py-1 border-b-3 border-[#5C4033]/15 focus:border-[#5C4033]/40 transition-colors"
                       />
-                      <div className="w-3/4 h-1 bg-amber-200 mx-auto mt-2 rounded-full" />
                     </div>
 
                     {/* Cincau Mascot Peeking in bottom corner */}
-                    <div className="absolute -bottom-2 -right-2 w-16 h-16 pointer-events-none">
+                    <div className="absolute -bottom-6 -right-4 w-24 h-24 tablet:w-28 tablet:h-28 pointer-events-none drop-shadow-xl z-20">
                       <CharviMascot
-                        variant="compact-header"
+                        variant="large-bottom"
                         emotion={childName.trim() ? 'excited' : 'listening'}
                         theme={mascotTheme}
-                        className="w-full h-full drop-shadow-md"
+                        className="w-full h-full scale-110"
                       />
                     </div>
                   </div>
@@ -515,10 +504,169 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               </motion.div>
             )}
 
-            {/* ================= STEP 3: FASE BELAJAR CARDS (Pawchi 00:21) ================= */}
+            {/* ================= STEP 3: BIRTHDAY CERTIFICATE CARD (Akta Kelahiran Cincau) ================= */}
             {step === 3 && (
               <motion.div
-                key="step-3"
+                key="step-3-birthday"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                className="flex-1 flex flex-col justify-between py-1 text-center relative"
+              >
+                <div>
+                  <h2 className="text-xl tablet:text-2xl font-black text-neutral-900 tracking-tight">
+                    Kapan hari ulang tahunmu? 🎂
+                  </h2>
+                  <p className="text-xs text-neutral-500 font-medium mt-1 max-w-xs mx-auto">
+                    Cincau akan mengingatkanmu 3 hari sebelum ulang tahunmu agar bisa menyiapkan kue! ✨
+                  </p>
+
+                  {/* AKTA KELAHIRAN CINCAU CARD - Memo Board Style */}
+                  <div className="mt-6 bg-[#FFFDF5] rounded-[24px] p-5 tablet:p-7 border-4 border-[#5C4033] shadow-[0_20px_60px_rgba(92,64,51,0.25)] relative max-w-[340px] tablet:max-w-[400px] mx-auto overflow-visible group">
+                    {/* Yellow Sticky Tape at Top Center */}
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-8 bg-amber-300 shadow-sm rotate-[-0.5deg] rounded-xs border border-amber-400/60 z-20" />
+
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between pb-2 border-b-2 border-[#5C4033]/15 mt-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm">🐾</span>
+                        <span className="text-[10px] tablet:text-xs font-black uppercase text-[#5C4033] tracking-widest font-handwriting">
+                          AKTA KELAHIRAN CINCAU
+                        </span>
+                      </div>
+                      <span className="text-xs">🌿</span>
+                    </div>
+
+                    {/* 3 Slot Boxes: DAY, MONTH, YEAR */}
+                    <div className="grid grid-cols-3 gap-2.5 my-5">
+                      {/* DAY Slot */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playPopSound();
+                          setPickerDay(birthDate.day);
+                          setPickerMonth(birthDate.month);
+                          setPickerYear(birthDate.year);
+                          setIsDatePickerOpen(true);
+                        }}
+                        className="bg-[#FDF8ED] border-2 border-amber-300 rounded-2xl p-2.5 flex flex-col items-center justify-center hover:bg-amber-50 active:scale-95 transition-all cursor-pointer shadow-xs"
+                      >
+                        <span className="text-2xl font-black text-[#5C4033] font-handwriting">
+                          {String(birthDate.day).padStart(2, '0')}
+                        </span>
+                        <span className="text-[9px] font-black uppercase text-amber-800 tracking-wider mt-0.5 font-handwriting">
+                          HARI
+                        </span>
+                      </button>
+
+                      {/* MONTH Slot */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playPopSound();
+                          setPickerDay(birthDate.day);
+                          setPickerMonth(birthDate.month);
+                          setPickerYear(birthDate.year);
+                          setIsDatePickerOpen(true);
+                        }}
+                        className="bg-[#FDF8ED] border-2 border-amber-300 rounded-2xl p-2.5 flex flex-col items-center justify-center hover:bg-amber-50 active:scale-95 transition-all cursor-pointer shadow-xs"
+                      >
+                        <span className="text-2xl font-black text-[#5C4033] font-handwriting">
+                          {String(birthDate.month).padStart(2, '0')}
+                        </span>
+                        <span className="text-[9px] font-black uppercase text-amber-800 tracking-wider mt-0.5 font-handwriting">
+                          BULAN
+                        </span>
+                      </button>
+
+                      {/* YEAR Slot */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playPopSound();
+                          setPickerDay(birthDate.day);
+                          setPickerMonth(birthDate.month);
+                          setPickerYear(birthDate.year);
+                          setIsDatePickerOpen(true);
+                        }}
+                        className="bg-[#FDF8ED] border-2 border-amber-300 rounded-2xl p-2.5 flex flex-col items-center justify-center hover:bg-amber-50 active:scale-95 transition-all cursor-pointer shadow-xs"
+                      >
+                        <span className="text-2xl font-black text-[#5C4033] font-handwriting">
+                          {birthDate.year}
+                        </span>
+                        <span className="text-[9px] font-black uppercase text-amber-800 tracking-wider mt-0.5 font-handwriting">
+                          TAHUN
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Birthday Cake Drawing in bottom right */}
+                    <div className="absolute -bottom-4 -right-2 text-4xl opacity-90 drop-shadow-md pointer-events-none rotate-6">
+                      🎂
+                    </div>
+                  </div>
+
+                  {/* Option Pills Below Card */}
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5 max-w-sm mx-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playPopSound();
+                        setIsDatePickerOpen(true);
+                      }}
+                      className="px-3.5 py-1.5 rounded-full bg-white border border-amber-300/90 text-amber-900 text-xs font-bold hover:bg-amber-50 active:scale-95 transition-all shadow-2xs cursor-pointer flex items-center gap-1"
+                    >
+                      <span>📅 Cuma ingat tahunnya</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playPopSound();
+                        const currYear = new Date().getFullYear();
+                        setBirthDate({ day: 1, month: 1, year: currYear - 7 });
+                        playCheerSound();
+                      }}
+                      className="px-3.5 py-1.5 rounded-full bg-amber-500 text-white border border-amber-400 text-xs font-bold hover:bg-amber-600 active:scale-95 transition-all shadow-2xs cursor-pointer flex items-center gap-1"
+                    >
+                      <span>🎈 Belum yakin — pilih umur</span>
+                    </button>
+                  </div>
+
+                  {/* Cincau Mascot Speech Bubble */}
+                  <div className="mt-4 flex items-center justify-center gap-2 max-w-xs mx-auto">
+                    <div className="w-12 h-12 relative shrink-0">
+                      <CharviMascot
+                        variant="compact-header"
+                        emotion="excited"
+                        theme={mascotTheme}
+                        className="w-full h-full drop-shadow-md"
+                      />
+                      <div className="absolute -top-1 -right-1 text-sm">🥳</div>
+                    </div>
+                    <div className="bg-amber-100/80 border border-amber-300/80 rounded-2xl p-2.5 text-left text-[11px] font-bold text-amber-950 shadow-2xs leading-snug">
+                      "Aku akan menghitung mundur untukmu — gak ada lagi yang lupa hari spesialmu!"
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full max-w-xs mx-auto mt-4 pb-2">
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={handleNext}
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-black text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer border-2 border-amber-300 active:scale-95 transition-transform"
+                  >
+                    <span>Lanjut</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ================= STEP 4: FASE BELAJAR CARDS (Pawchi 00:21) ================= */}
+            {step === 4 && (
+              <motion.div
+                key="step-4"
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -14 }}
@@ -532,66 +680,71 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
                     Pilih fase kurikulum yang paling pas untuk {childName}!
                   </p>
 
-                  {/* Fase Selection Cards */}
-                  <div className="space-y-2.5 max-w-sm mx-auto mt-4">
-                    {[
-                      {
-                        faseKey: 'A' as const,
-                        title: 'Fase A: PAUD & TK',
-                        subtitle: 'Usia 4–6 Tahun',
-                        desc: 'Mengenal huruf, angka 1-10, warna & bentuk alam',
-                        icon: '🌱',
-                        color: 'border-emerald-400 bg-emerald-50/80',
-                      },
-                      {
-                        faseKey: 'B' as const,
-                        title: 'Fase B: SD Kelas 1–2',
-                        subtitle: 'Usia 6–8 Tahun',
-                        desc: 'Membaca lancar, hitung cepat & cerita inspiratif',
-                        icon: '🌿',
-                        color: 'border-sky-400 bg-sky-50/80',
-                      },
-                      {
-                        faseKey: 'C' as const,
-                        title: 'Fase C: SD Kelas 3–4',
-                        subtitle: 'Usia 8–10 Tahun',
-                        desc: 'Logika matematika, sains ceria & teka-teki kata',
-                        icon: '🌳',
-                        color: 'border-amber-400 bg-amber-50/80',
-                      },
-                    ].map((item) => {
-                      const isSelected = fase === item.faseKey;
-                      return (
-                        <button
-                          key={item.faseKey}
-                          onClick={() => {
-                            playPopSound();
-                            setFase(item.faseKey);
-                          }}
-                          className={`w-full p-3.5 rounded-2xl border-2 text-left flex items-center justify-between transition-all cursor-pointer ${
-                            isSelected
-                              ? `${item.color} shadow-sm ring-3 ring-orange-200 border-orange-500`
-                              : 'border-neutral-200 bg-white hover:border-neutral-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{item.icon}</span>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <h4 className="text-xs font-black text-neutral-900">{item.title}</h4>
-                                <span className="text-[10px] font-bold text-neutral-500">({item.subtitle})</span>
+                  {/* Fase Selection Board - Memo Style */}
+                  <div className="mt-6 bg-[#FFFDF5] rounded-[24px] p-5 tablet:p-7 border-4 border-[#5C4033] shadow-[0_20px_60px_rgba(92,64,51,0.25)] relative max-w-[360px] tablet:max-w-[420px] mx-auto overflow-visible group">
+                    {/* Yellow Sticky Tape at Top Right */}
+                    <div className="absolute -top-3.5 right-8 w-24 h-7 bg-amber-300 shadow-sm rotate-[1.5deg] rounded-xs border border-amber-400/60 z-20" />
+
+                    <div className="space-y-3 mt-1">
+                      {[
+                        {
+                          faseKey: 'A' as const,
+                          title: 'Fase A: PAUD & TK',
+                          subtitle: 'Usia 4–6 Tahun',
+                          desc: 'Mengenal huruf, angka 1-10, warna & bentuk alam',
+                          icon: '🌱',
+                          color: 'border-emerald-400 bg-emerald-50/50',
+                        },
+                        {
+                          faseKey: 'B' as const,
+                          title: 'Fase B: SD Kelas 1–2',
+                          subtitle: 'Usia 6–8 Tahun',
+                          desc: 'Membaca lancar, hitung cepat & cerita inspiratif',
+                          icon: '🌿',
+                          color: 'border-sky-400 bg-sky-50/50',
+                        },
+                        {
+                          faseKey: 'C' as const,
+                          title: 'Fase C: SD Kelas 3–4',
+                          subtitle: 'Usia 8–10 Tahun',
+                          desc: 'Logika matematika, sains ceria & teka-teki kata',
+                          icon: '🌳',
+                          color: 'border-amber-400 bg-amber-50/50',
+                        },
+                      ].map((item) => {
+                        const isSelected = fase === item.faseKey;
+                        return (
+                          <button
+                            key={item.faseKey}
+                            onClick={() => {
+                              playPopSound();
+                              setFase(item.faseKey);
+                            }}
+                            className={`w-full p-3 rounded-2xl border-2 text-left flex items-center justify-between transition-all cursor-pointer font-handwriting ${
+                              isSelected
+                                ? `${item.color} shadow-sm ring-3 ring-amber-200 border-[#5C4033] scale-[1.02]`
+                                : 'border-[#5C4033]/15 bg-white/60 hover:bg-white hover:border-[#5C4033]/30 shadow-xs'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl drop-shadow-sm">{item.icon}</span>
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <h4 className="text-xs tablet:text-sm font-black text-[#5C4033]">{item.title}</h4>
+                                  <span className="text-[10px] font-black text-[#5C4033]/60">({item.subtitle})</span>
+                                </div>
+                                <p className="text-[10px] tablet:text-[11px] text-[#5C4033]/80 font-black mt-0.5 leading-tight">{item.desc}</p>
                               </div>
-                              <p className="text-[10px] text-neutral-600 font-medium mt-0.5">{item.desc}</p>
                             </div>
-                          </div>
-                          {isSelected && (
-                            <div className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center shrink-0">
-                              <Check className="w-3.5 h-3.5 stroke-[3]" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
+                            {isSelected && (
+                              <div className="w-5 h-5 rounded-full bg-[#5C4033] text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <Check className="w-3.5 h-3.5 stroke-[4]" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
@@ -608,10 +761,10 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               </motion.div>
             )}
 
-            {/* ================= STEP 4: STICKER BOARD (Pawchi 00:44) ================= */}
-            {step === 4 && (
+            {/* ================= STEP 5: STICKER BOARD (Pawchi 00:44) ================= */}
+            {step === 5 && (
               <motion.div
-                key="step-4"
+                key="step-5"
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -14 }}
@@ -685,10 +838,10 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               </motion.div>
             )}
 
-            {/* ================= STEP 5: DAILY TIME RULER SLIDER (Pawchi 00:51) ================= */}
-            {step === 5 && (
+            {/* ================= STEP 6: DAILY TIME RULER SLIDER (Pawchi 00:51) ================= */}
+            {step === 6 && (
               <motion.div
-                key="step-5"
+                key="step-6"
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -14 }}
@@ -772,10 +925,10 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               </motion.div>
             )}
 
-            {/* ================= STEP 6: PARENT SHIELD STEP ================= */}
-            {step === 6 && (
+            {/* ================= STEP 7: PARENT SHIELD STEP ================= */}
+            {step === 7 && (
               <motion.div
-                key="step-6"
+                key="step-7"
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -14 }}
@@ -842,10 +995,10 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               </motion.div>
             )}
 
-            {/* ================= STEP 7: THE SUNRISE RUN INTERSTITIAL (Pawchi 01:38-01:46) ================= */}
-            {step === 7 && (
+            {/* ================= STEP 8: THE SUNRISE RUN INTERSTITIAL (Pawchi 01:38-01:46) ================= */}
+            {step === 8 && (
               <motion.div
-                key="step-7"
+                key="step-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -910,10 +1063,10 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
               </motion.div>
             )}
 
-            {/* ================= STEP 8: FLIPPABLE 3D MEMBER CARD REVEAL (Pawchi 01:47) ================= */}
-            {step === 8 && (
+            {/* ================= STEP 9: FLIPPABLE 3D MEMBER CARD REVEAL (Pawchi 01:47) ================= */}
+            {step === 9 && (
               <motion.div
-                key="step-8"
+                key="step-9"
                 initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.92 }}
@@ -928,115 +1081,25 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
                   <h2 className="text-xl tablet:text-2xl font-black text-neutral-900 tracking-tight">
                     Ini Kartu Petualang {childName}! 🎉
                   </h2>
-                  <p className="text-xs text-neutral-500 font-medium mt-0.5">
+                  <p className="text-xs text-neutral-500 font-medium mt-0.5 mb-3">
                     Ketuk kartu untuk memutar & melihat bagian belakang! ✨
                   </p>
 
-                  {/* Interactive Flippable 3D Member Card */}
-                  <div className="mt-3 perspective-1000 max-w-xs mx-auto">
-                    <motion.div
-                      onClick={() => {
-                        playPopSound();
-                        setIsCardFlipped((prev) => !prev);
-                      }}
-                      animate={{ rotateY: isCardFlipped ? 180 : 0 }}
-                      transition={{ duration: 0.6, type: 'spring', damping: 20 }}
-                      className="w-full h-56 rounded-3xl shadow-xl cursor-pointer relative preserve-3d"
-                    >
-                      {/* CARD FRONT SIDE */}
-                      <div className="absolute inset-0 w-full h-full rounded-3xl bg-gradient-to-br from-[#FFF8E7] via-white to-[#FFE8CC] border-3 border-amber-300 p-4 flex flex-col justify-between backface-hidden shadow-md overflow-hidden">
-                        {/* Shimmer overlay */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/40 to-transparent rounded-bl-full pointer-events-none" />
-
-                        <div className="flex items-center justify-between pb-2 border-b border-amber-200/80">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-lg">🌿</span>
-                            <span className="text-[10px] font-black uppercase text-amber-950 tracking-wider">
-                              CINCAU ADVENTURE CLUB
-                            </span>
-                          </div>
-                          <span className="text-[9px] font-black px-2 py-0.5 bg-amber-500 text-white rounded-full">
-                            VIP MEMBER
-                          </span>
-                        </div>
-
-                        {/* Middle info */}
-                        <div className="flex items-center gap-3 py-1">
-                          <div className="w-16 h-16 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-                            <CharviMascot
-                              variant="compact-header"
-                              emotion="celebrating"
-                              theme={mascotTheme}
-                              className="w-14 h-14"
-                            />
-                          </div>
-                          <div className="text-left">
-                            <h3 className="text-base font-black text-neutral-900 leading-tight">
-                              {childName || 'Petualang'}
-                            </h3>
-                            <span className="text-[10px] font-bold text-amber-800 block mt-0.5">
-                              Fase {fase} • {gender === 'boy' ? 'Jagoan Cilik' : 'Putri Cilik'}
-                            </span>
-                            <span className="text-[9px] font-medium text-neutral-500 block">
-                              Target Harian: {playDurationMinutes} Menit
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Bottom stickers & barcode */}
-                        <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            {selectedStickers.slice(0, 3).map((id) => (
-                              <span key={id} className="text-sm">
-                                {INTEREST_STICKERS.find((s) => s.id === id)?.icon}
-                              </span>
-                            ))}
-                          </div>
-
-                          <div className="text-right">
-                            <div className="flex items-center gap-0.5 h-3">
-                              <div className="w-1 h-full bg-neutral-900" />
-                              <div className="w-2 h-full bg-neutral-900" />
-                              <div className="w-0.5 h-full bg-neutral-900" />
-                              <div className="w-1.5 h-full bg-neutral-900" />
-                              <div className="w-1 h-full bg-neutral-900" />
-                              <div className="w-2.5 h-full bg-neutral-900" />
-                            </div>
-                            <span className="text-[8px] font-mono text-neutral-400 block mt-0.5">
-                              ID: CINCAU-2026-VIP
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* CARD BACK SIDE */}
-                      <div className="absolute inset-0 w-full h-full rounded-3xl bg-gradient-to-br from-[#FFF5EA] via-[#FFE4CC] to-[#FED7AA] border-3 border-amber-400 p-4 flex flex-col justify-between backface-hidden rotate-y-180 shadow-md">
-                        <div className="text-center pt-2">
-                          <span className="text-2xl block mb-1">🏅</span>
-                          <h4 className="text-xs font-black text-amber-950 uppercase">
-                            Janji Petualang Cincau
-                          </h4>
-                          <p className="text-[10px] font-medium text-amber-900/80 mt-1 max-w-[210px] mx-auto leading-snug">
-                            "Aku berjanji akan selalu penasaran belajar hal baru, berbuat baik, dan bermain dengan gembira!"
-                          </p>
-                        </div>
-
-                        <div className="py-2 flex items-center justify-center gap-4 border-t border-amber-300/80">
-                          <div className="w-10 h-10 bg-white rounded-lg p-1 border border-amber-300 shadow-2xs flex items-center justify-center text-xs">
-                            📱 QR
-                          </div>
-                          <div className="text-left text-[9px] font-bold text-amber-950">
-                            <span>Resmi Diverifikasi oleh</span>
-                            <span className="block text-orange-700 font-black">Cincau Edu Indonesia</span>
-                          </div>
-                        </div>
-
-                        <span className="text-[9px] text-amber-800/60 font-semibold block text-center">
-                          Ketuk untuk membalik kembali
-                        </span>
-                      </div>
-                    </motion.div>
-                  </div>
+                  <MemberCard
+                    mascotTheme={mascotTheme}
+                    isFlipped={isCardFlipped}
+                    onFlip={setIsCardFlipped}
+                    childProfile={{
+                      name: childName,
+                      fase: fase,
+                      gender: gender,
+                      birthDate: birthDate,
+                      playDuration: `${playDurationMinutes} Menit`,
+                      stickers: selectedStickers,
+                      memberId: 'CINCAU-2026-VIP',
+                      favoriteSubject: ''
+                    }}
+                  />
                 </div>
 
                 <div className="w-full max-w-xs mx-auto mt-3 pb-2 space-y-1.5">
@@ -1065,6 +1128,111 @@ export const KidsRegistrationModal: React.FC<KidsRegistrationModalProps> = ({
           </AnimatePresence>
         </div>
       </motion.div>
+
+      {/* BOTTOM SHEET WHEEL DATE PICKER ("Kapan si kecil lahir?") */}
+      <AnimatePresence>
+        {isDatePickerOpen && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 backdrop-blur-xs p-0 tablet:p-4 select-none">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDatePickerOpen(false)}
+              className="absolute inset-0"
+            />
+
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-sm tablet:max-w-md bg-[#FFFDF7] rounded-t-[36px] tablet:rounded-[36px] p-6 shadow-2xl border-t-4 tablet:border-4 border-amber-300 z-10 flex flex-col items-center text-center pointer-events-auto"
+            >
+              {/* Drag handle */}
+              <div className="w-12 h-1.5 bg-amber-300/80 rounded-full mx-auto mb-4" />
+
+              <h3 className="text-lg font-black text-neutral-900 mb-1">
+                Kapan si kecil lahir? 🎂
+              </h3>
+              <p className="text-xs font-bold text-neutral-500 mb-4">
+                Pilih tanggal, bulan, dan tahun kelahiran:
+              </p>
+
+              {/* Wheel Picker Container */}
+              <div className="w-full relative bg-amber-50/80 rounded-2xl border-2 border-amber-200/90 p-3 my-2 overflow-hidden">
+                {/* Center Highlight Bar */}
+                <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-10 bg-amber-200/80 border-y-2 border-amber-400 rounded-xl pointer-events-none z-0" />
+
+                <div className="grid grid-cols-3 gap-2 relative z-10">
+                  {/* DAY WHEEL */}
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-black uppercase text-amber-800 mb-1">HARI</span>
+                    <select
+                      value={pickerDay}
+                      onChange={(e) => setPickerDay(Number(e.target.value))}
+                      className="w-full bg-transparent text-center font-black text-xl text-neutral-900 py-2 outline-none font-mono cursor-pointer"
+                    >
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                        <option key={d} value={d}>
+                          {String(d).padStart(2, '0')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* MONTH WHEEL */}
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-black uppercase text-amber-800 mb-1">BULAN</span>
+                    <select
+                      value={pickerMonth}
+                      onChange={(e) => setPickerMonth(Number(e.target.value))}
+                      className="w-full bg-transparent text-center font-black text-xl text-neutral-900 py-2 outline-none font-mono cursor-pointer"
+                    >
+                      {[
+                        'Jan (01)', 'Feb (02)', 'Mar (03)', 'Apr (04)', 'Mei (05)', 'Jun (06)',
+                        'Jul (07)', 'Agu (08)', 'Sep (09)', 'Okt (10)', 'Nov (11)', 'Des (12)'
+                      ].map((m, idx) => (
+                        <option key={idx + 1} value={idx + 1}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* YEAR WHEEL */}
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-black uppercase text-amber-800 mb-1">TAHUN</span>
+                    <select
+                      value={pickerYear}
+                      onChange={(e) => setPickerYear(Number(e.target.value))}
+                      className="w-full bg-transparent text-center font-black text-xl text-neutral-900 py-2 outline-none font-mono cursor-pointer"
+                    >
+                      {Array.from({ length: 16 }, (_, i) => 2010 + i).map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Confirm Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  playCheerSound();
+                  setBirthDate({ day: pickerDay, month: pickerMonth, year: pickerYear });
+                  setIsDatePickerOpen(false);
+                }}
+                className="w-full mt-4 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-black text-sm shadow-md border-2 border-amber-300 active:scale-95 transition-transform cursor-pointer"
+              >
+                Pilih Tanggal Ini ✨
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef, useId } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { CharviEmotion, LookTarget, MascotTheme } from '../types';
 
 interface CharviMascotProps {
@@ -181,8 +181,8 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
     const nextCount = tapCount + 1;
     setTapCount(nextCount);
 
-    if (nextCount >= 5) {
-      // Trigger Angry Red (>5x taps)
+    if (nextCount >= 3) {
+      // Trigger Angry Red (>= 3 taps)
       setIsRapidTapAnnoyed(true);
       setTapEmotion('angry');
       if (onAnnoyedChange) onAnnoyedChange(true);
@@ -194,26 +194,29 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
         setTapEmotion(null);
         if (onAnnoyedChange) onAnnoyedChange(false);
         if (onEmotionChange) onEmotionChange('idle');
-      }, 4600);
+      }, 4200);
     } else {
       // Normal interactive tap: Candy Pink ('excited') -> Golden Yellow ('happy') -> Sky Blue ('idle')
-      // Retained for 5-7 seconds total so child can appreciate the warm feedback
       setIsRapidTapAnnoyed(false);
       setTapEmotion('excited');
       if (onEmotionChange) onEmotionChange('excited');
 
-      // Transition to Yellow ('happy') after 3.0 seconds
+      // Reset tap count if no further taps within 2.5 seconds
+      cooldownTimerRef.current = setTimeout(() => {
+        setTapCount(0);
+      }, 2500);
+
+      // Transition to Yellow ('happy') after 2.0 seconds
       tapEmotionTimer1Ref.current = setTimeout(() => {
         setTapEmotion('happy');
         if (onEmotionChange) onEmotionChange('happy');
 
-        // Transition back to Idle Blue after 3.6 seconds (Total duration: 6.6 seconds)
+        // Transition back to Idle Blue after 2.5 seconds
         tapEmotionTimer2Ref.current = setTimeout(() => {
           setTapEmotion(null);
-          setTapCount(0);
           if (onEmotionChange) onEmotionChange('idle');
-        }, 3600);
-      }, 3000);
+        }, 2500);
+      }, 2000);
     }
 
     if (onClick) onClick();
@@ -413,19 +416,19 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
   // Dynamic eye pupil offsets based on lookTarget or spontaneousLook (-1 to 1)
   const effectiveLook = spontaneousLook || lookTarget;
   const pupilOffsetX = useMemo(() => {
-    if (isBored) return 4;
-    if (isThinking) return 10; // Gazing thoughtfully up-right
-    if (isProud) return 6;
-    const raw = (effectiveLook?.x ?? 0) * 12;
-    return Math.max(-14, Math.min(14, raw));
+    if (isBored) return 3;
+    if (isThinking) return 6; // Gazing thoughtfully up-right
+    if (isProud) return 4;
+    const raw = (effectiveLook?.x ?? 0) * 6;
+    return Math.max(-7, Math.min(7, raw));
   }, [effectiveLook?.x, isBored, isThinking, isProud]);
 
   const pupilOffsetY = useMemo(() => {
-    if (isBored) return 10; // gazing slightly down when bored/sleepy
-    if (isThinking) return -12; // Gazing up when contemplating
-    if (isProud) return -4;
-    const raw = (effectiveLook?.y ?? 0) * 14;
-    return Math.max(-16, Math.min(16, raw));
+    if (isBored) return 5; // gazing slightly down when bored/sleepy
+    if (isThinking) return -6; // Gazing up when contemplating
+    if (isProud) return -2;
+    const raw = (effectiveLook?.y ?? 0) * 6;
+    return Math.max(-6, Math.min(6, raw));
   }, [effectiveLook?.y, isBored, isThinking, isProud]);
 
   const isLarge = variant === 'large-bottom';
@@ -433,12 +436,14 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
   // Physical body lean towards cursor/finger
   const bodyTiltX = useMemo(() => {
     if (!isInteracting || isBored || isAngry) return 0;
-    return (lookTarget?.x ?? 0) * 6; // Max 6 degrees tilt
+    const raw = (lookTarget?.x ?? 0) * 2.5;
+    return Math.max(-3, Math.min(3, raw)); // Max 3 degrees tilt
   }, [lookTarget?.x, isInteracting, isBored, isAngry]);
 
   const bodyLeanY = useMemo(() => {
     if (!isInteracting || isBored || isAngry) return 0;
-    return (lookTarget?.y ?? 0) * 5; // Max 5px vertical lean
+    const raw = (lookTarget?.y ?? 0) * 2;
+    return Math.max(-2, Math.min(2, raw)); // Max 2px vertical lean
   }, [lookTarget?.y, isInteracting, isBored, isAngry]);
 
   return (
@@ -448,7 +453,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
         scaleY: 0.84,
         scaleX: 1.16,
         y: 4,
-        transition: { type: 'spring', damping: 10, stiffness: 420 },
+        transition: { type: 'spring', damping: 14, stiffness: 380 },
       }}
       className={`relative select-none transition-transform cursor-pointer ${className}`}
     >
@@ -547,7 +552,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
       >
         <defs>
           {/* 1. CYAN JELLY TRANSLUCENT GRADIENT (IDLE / CALM) */}
-          <linearGradient id="charviCyanJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviCyanJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#38bdf8" />
             <stop offset="25%" stopColor="#00e5ff" />
             <stop offset="70%" stopColor="#0284c7" />
@@ -555,7 +560,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 2. HAPPY JELLY TRANSLUCENT GRADIENT (GOLDEN YELLOW / AMBER) */}
-          <linearGradient id="charviYellowJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviYellowJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#fef08a" />
             <stop offset="25%" stopColor="#facc15" />
             <stop offset="70%" stopColor="#f59e0b" />
@@ -563,7 +568,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 3. ANGRY JELLY TRANSLUCENT GRADIENT (FIERY CRIMSON RED) */}
-          <linearGradient id="charviRedJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviRedJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#fb7185" />
             <stop offset="25%" stopColor="#f43f5e" />
             <stop offset="70%" stopColor="#e11d48" />
@@ -571,7 +576,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 4. EXCITED JELLY TRANSLUCENT GRADIENT (MAGENTA / FUCHSIA-PINK) */}
-          <linearGradient id="charviPinkJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviPinkJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#f472b6" />
             <stop offset="25%" stopColor="#e879f9" />
             <stop offset="70%" stopColor="#c026d3" />
@@ -579,7 +584,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 5. SAD JELLY TRANSLUCENT GRADIENT (OCEAN BLUE) */}
-          <linearGradient id="charviBlueJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviBlueJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#60a5fa" />
             <stop offset="25%" stopColor="#38bdf8" />
             <stop offset="70%" stopColor="#0284c7" />
@@ -587,7 +592,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 6. BORED JELLY TRANSLUCENT GRADIENT (LAVENDER / SOFT VIOLET) */}
-          <linearGradient id="charviPurpleJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviPurpleJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#c084fc" />
             <stop offset="25%" stopColor="#a855f7" />
             <stop offset="70%" stopColor="#7c3aed" />
@@ -595,7 +600,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 7. EMERALD MINT THEME GRADIENT */}
-          <linearGradient id="charviEmeraldJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviEmeraldJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#6ee7b7" />
             <stop offset="25%" stopColor="#10b981" />
             <stop offset="70%" stopColor="#059669" />
@@ -603,7 +608,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 8. BERRY PURPLE THEME GRADIENT */}
-          <linearGradient id="charviBerryJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviBerryJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#c084fc" />
             <stop offset="25%" stopColor="#8b5cf6" />
             <stop offset="70%" stopColor="#7c3aed" />
@@ -611,7 +616,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 9. SUNNY BANANA THEME GRADIENT */}
-          <linearGradient id="charviBananaJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviBananaJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#fbbf24" />
             <stop offset="25%" stopColor="#f59e0b" />
             <stop offset="70%" stopColor="#d97706" />
@@ -619,7 +624,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 10. CLASSIC ORANGE THEME GRADIENT (SURPRISED) */}
-          <linearGradient id="charviOrangeJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviOrangeJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#fdba74" />
             <stop offset="25%" stopColor="#fb923c" />
             <stop offset="70%" stopColor="#ea580c" />
@@ -627,7 +632,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 11. INDIGO JELLY (SLEEPY) */}
-          <linearGradient id="charviIndigoJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviIndigoJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#a5b4fc" />
             <stop offset="25%" stopColor="#818cf8" />
             <stop offset="70%" stopColor="#4f46e5" />
@@ -635,7 +640,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 12. GOLDEN JELLY (PROUD) */}
-          <linearGradient id="charviGoldJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviGoldJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#fef08a" />
             <stop offset="25%" stopColor="#fde047" />
             <stop offset="70%" stopColor="#eab308" />
@@ -643,7 +648,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* 13. CORAL PEACH JELLY (GIGGLE) */}
-          <linearGradient id="charviPeachJelly" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
+          <linearGradient id={`charviPeachJelly_${mascotId}`} gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="440">
             <stop offset="0%" stopColor="#fed7aa" />
             <stop offset="25%" stopColor="#fb923c" />
             <stop offset="70%" stopColor="#f43f5e" />
@@ -651,14 +656,14 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
           </linearGradient>
 
           {/* Liquid Wave Highlight crest */}
-          <linearGradient id="liquidWaveRim" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id={`liquidWaveRim_${mascotId}`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
             <stop offset="50%" stopColor="#ffffff" stopOpacity="0.85" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="0.4" />
           </linearGradient>
 
           {/* Soft translucent bubble gradient */}
-          <radialGradient id="bubbleGloss" cx="35%" cy="35%" r="65%">
+          <radialGradient id={`bubbleGloss_${mascotId}`} cx="35%" cy="35%" r="65%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="0.6" />
             <stop offset="45%" stopColor="#bae6fd" stopOpacity="0.25" />
             <stop offset="100%" stopColor="#0284c7" stopOpacity="0.05" />
@@ -692,7 +697,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
             <stop offset="100%" stopColor={getEmotionGlow(topEmotion, theme)} stopOpacity="0" />
           </radialGradient>
 
-          <filter id="jellyCoreBlur" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id={`jellyCoreBlur_${mascotId}`} x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="8" />
           </filter>
 
@@ -704,7 +709,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
             <ellipse cx="234" cy="155" rx="30" ry="46" />
           </clipPath>
 
-          {/* Clip path for Large Body Liquid Filling - extends seamlessly to bottom (elongated) */}
+          {/* Clip path for Large Body Liquid Filling - rounded bottom base */}
           <clipPath id={`largeBodyClip_${mascotId}`}>
             <path
               d="
@@ -718,8 +723,10 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                 q 20,-34 40,0
                 q 20,-34 40,0
                 q 20,-34 40,0
-                L 360, 360
-                L 0, 360
+                L 360, 300
+                Q 360, 352 310, 352
+                Q 180, 362 50, 352
+                Q 0, 352 0, 300
                 Z
               "
             />
@@ -791,11 +798,13 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                   q 20,-34 40,0
                   q 20,-34 40,0
                   q 20,-34 40,0
-                  L 360, 360
-                  L 0, 360
+                  L 360, 300
+                  Q 360, 352 310, 352
+                  Q 180, 362 50, 352
+                  Q 0, 352 0, 300
                   Z
                 "
-                fill={getEmotionGradient(underEmotion, theme)}
+                fill={getEmotionGradient(underEmotion, theme, mascotId)}
                 filter={`url(#jellyGlow_under_${mascotId})`}
               />
 
@@ -829,11 +838,13 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                       q 20,-34 40,0
                       q 20,-34 40,0
                       q 20,-34 40,0
-                      L 360, 360
-                      L 0, 360
+                      L 360, 300
+                      Q 360, 352 310, 352
+                      Q 180, 362 50, 352
+                      Q 0, 352 0, 300
                       Z
                     "
-                    fill={getEmotionGradient(topEmotion, theme)}
+                    fill={getEmotionGradient(topEmotion, theme, mascotId)}
                     filter={`url(#jellyGlow_top_${mascotId})`}
                   />
                   <ellipse
@@ -898,7 +909,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                           L -60, 360
                           Z
                         "
-                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        fill={getEmotionGradient(incomingEmotion, theme, mascotId)}
                         filter={`url(#jellyGlow_top_${mascotId})`}
                         animate={{ x: [-35, 15, -35] }}
                         transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
@@ -948,7 +959,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                           L -60, 300
                           Z
                         "
-                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        fill={getEmotionGradient(incomingEmotion, theme, mascotId)}
                         filter={`url(#jellyGlow_top_${mascotId})`}
                         animate={{ x: [15, -35, 15] }}
                         transition={{ repeat: Infinity, duration: 2.0, ease: 'easeInOut' }}
@@ -1056,7 +1067,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                   L 10, 80
                   Z
                 "
-                fill={getEmotionGradient(underEmotion, theme)}
+                fill={getEmotionGradient(underEmotion, theme, mascotId)}
                 filter={`url(#jellyGlow_under_${mascotId})`}
               />
 
@@ -1085,7 +1096,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                     L 10, 80
                     Z
                   "
-                  fill={getEmotionGradient(topEmotion, theme)}
+                  fill={getEmotionGradient(topEmotion, theme, mascotId)}
                   filter={`url(#jellyGlow_top_${mascotId})`}
                 />
               )}
@@ -1119,7 +1130,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                           L -60, 420
                           Z
                         "
-                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        fill={getEmotionGradient(incomingEmotion, theme, mascotId)}
                         filter={`url(#jellyGlow_top_${mascotId})`}
                         animate={{ x: [-35, 15, -35] }}
                         transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
@@ -1171,7 +1182,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                           q -55, 12 -110, 0
                           Z
                         "
-                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        fill={getEmotionGradient(incomingEmotion, theme, mascotId)}
                         filter={`url(#jellyGlow_top_${mascotId})`}
                         animate={{ x: [15, -35, 15] }}
                         transition={{ repeat: Infinity, duration: 2.0, ease: 'easeInOut' }}
@@ -1384,7 +1395,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                       x: pupilOffsetX,
                       y: pupilOffsetY,
                     }}
-                    transition={{ type: 'spring', damping: 20, stiffness: 220 }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 180 }}
                   >
                     <ellipse
                       cx="126"
@@ -1424,7 +1435,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                   >
                     <path
                       d="M 90, 60 L 162, 60 L 162, 175 Q 126, 188 90, 175 Z"
-                      fill={getEmotionGradient(topEmotion, theme)}
+                      fill={getEmotionGradient(topEmotion, theme, mascotId)}
                     />
                     <path
                       d="M 90, 175 Q 126, 188 162, 175"
@@ -1512,7 +1523,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                       x: pupilOffsetX,
                       y: pupilOffsetY,
                     }}
-                    transition={{ type: 'spring', damping: 20, stiffness: 220 }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 180 }}
                   >
                     <ellipse
                       cx="234"
@@ -1550,7 +1561,7 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                   >
                     <path
                       d="M 198, 60 L 270, 60 L 270, 175 Q 234, 188 198, 175 Z"
-                      fill={getEmotionGradient(topEmotion, theme)}
+                      fill={getEmotionGradient(topEmotion, theme, mascotId)}
                     />
                     <path
                       d="M 198, 175 Q 234, 188 270, 175"

@@ -128,187 +128,63 @@ export const playPurrSound = () => {
   }
 };
 
-/**
- * Resonant pentatonic gamelan chime for Indonesian cultural hotspots discovery.
- */
-export const playGamelanChime = () => {
+export const playFloraChime = () => {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    // Slendro-inspired resonant notes
-    const freqs = [659.25, 783.99, 987.77, 1318.51];
-    freqs.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const noteTime = now + idx * 0.06;
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, noteTime);
-
-      gain.gain.setValueAtTime(0.18, noteTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.35);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(noteTime);
-      osc.stop(noteTime + 0.35);
-    });
-  } catch {
-    // Fail silently
-  }
-};
-
-/**
- * Resonant rhythmic drum beat of Papua Tifa
- */
-export const playTifaBeat = () => {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(55, now + 0.18);
-
-    gain.gain.setValueAtTime(0.35, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.22);
-  } catch {
-    // Fail silently
-  }
-};
-
-/**
- * Bright acoustic pluck of Rote Sasando
- */
-export const playSasandoNote = () => {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const freqs = [523.25, 783.99, 1046.5];
-    const freq = freqs[Math.floor(Math.random() * freqs.length)];
-
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.setValueAtTime(587.33, now); // D5
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.18); // A5
 
-    gain.gain.setValueAtTime(0.22, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.45);
+    osc.stop(now + 0.35);
   } catch {
     // Fail silently
   }
 };
 
-export const playMascotVoiceGreeting = () => {
+export const playFaunaChime = () => {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-
-    // A cute 3-tone vocal glissando: "YAY-YOO-YEY!"
-    const pitches = [587.33, 880, 1046.5, 1174.66]; // D5, A5, C6, D6
-    pitches.forEach((freq, idx) => {
+    
+    // Low safari bass hum followed by cheerful lion-themed tri-tone chime (G3, D4, B4, D5)
+    const notes = [196, 293.66, 493.88, 587.33];
+    notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       const startTime = now + idx * 0.08;
 
-      osc.type = 'sine';
+      osc.type = idx === 0 ? 'triangle' : 'sine';
       osc.frequency.setValueAtTime(freq, startTime);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.08, startTime + 0.12);
 
-      gain.gain.setValueAtTime(0.2, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.14);
+      gain.gain.setValueAtTime(0.25, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start(startTime);
-      osc.stop(startTime + 0.14);
+      osc.stop(startTime + 0.3);
     });
   } catch {
     // Fail silently
   }
 };
 
-/**
- * Tactile, bouncy squish sound for soft jelly cheek hugs.
- */
-export const playSquishSound = () => {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
 
-    osc.type = 'sine';
-    // Down-then-up rubbery inflection: 320Hz -> 180Hz -> 480Hz
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(180, now + 0.07);
-    osc.frequency.exponentialRampToValueAtTime(460, now + 0.18);
 
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.22);
-  } catch {
-    // Fail silently
-  }
-};
-
-/**
- * Warm, tender chime when the child jelly harmonizes into golden yellow.
- */
-export const playJellyChime = () => {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const notes = [587.33, 739.99, 880, 1174.66]; // D major heartwarming chime
-    notes.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const startTime = now + idx * 0.06;
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, startTime);
-
-      gain.gain.setValueAtTime(0.16, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(startTime);
-      osc.stop(startTime + 0.35);
-    });
-  } catch {
-    // Fail silently
-  }
-};
 
 
 

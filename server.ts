@@ -14,7 +14,7 @@ const ai = new GoogleGenAI({ apiKey });
 // AI Assistant endpoint for Charvi mascot
 app.post('/api/chat', async (req: Request, res: Response) => {
   try {
-    const { message, notesContext, mood } = req.body;
+    const { message, notesContext } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });

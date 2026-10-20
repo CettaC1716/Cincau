@@ -10,10 +10,10 @@ interface PlayCardProps {
 export const PlayCard: React.FC<PlayCardProps> = ({ card, onClick }) => {
   return (
     <motion.div
-      whileHover={{ scale: 1.03, y: -2 }}
-      whileTap={{ scale: 0.96 }}
+      whileHover={{ scale: 1.04, y: -6 }}
+      whileTap={{ scale: 0.96, y: 0 }}
       onClick={onClick}
-      className={`w-[178px] mobile-lg:w-[195px] tablet:w-[235px] tablet-md:w-[260px] shrink-0 snap-start rounded-[22px] tablet:rounded-[26px] bg-white/95 backdrop-blur-xs border-2 ${card.cardBorder} shadow-lg shadow-emerald-950/10 flex flex-col justify-between overflow-hidden cursor-pointer transition-all group select-none`}
+      className={`w-[178px] mobile-lg:w-[195px] tablet:w-[235px] tablet-md:w-[260px] shrink-0 snap-start rounded-[24px] tablet:rounded-[30px] bg-white border-b-[6px] ${card.cardBorder.replace('border-', 'border-b-')} border-2 ${card.cardBorder} shadow-[0_12px_36px_rgba(0,0,0,0.12)] flex flex-col justify-between overflow-hidden cursor-pointer transition-all duration-300 group select-none`}
     >
       <div className={`h-15 mobile-lg:h-18 tablet:h-24 bg-gradient-to-br ${card.headerBg} relative flex flex-col items-center justify-center p-2 mobile-lg:p-2.5 overflow-hidden border-b border-black/5`}>
         <div className="absolute -top-3 -right-3 w-12 h-12 bg-white/20 rounded-full blur-xs pointer-events-none" />
@@ -28,8 +28,8 @@ export const PlayCard: React.FC<PlayCardProps> = ({ card, onClick }) => {
         </div>
       </div>
 
-      <div className="p-3 mobile-lg:p-3.5 tablet:p-4 flex-1 flex flex-col justify-between">
-        <div>
+      <div className="p-3 mobile-lg:p-3.5 tablet:p-4 flex-1 flex flex-col justify-between relative">
+        <div className="relative z-10">
           <h4 className="font-black text-xs tablet:text-base text-neutral-900 leading-tight">
             {card.title}
           </h4>
@@ -38,7 +38,7 @@ export const PlayCard: React.FC<PlayCardProps> = ({ card, onClick }) => {
           </p>
         </div>
 
-        <div className="mt-2 pt-2 tablet:mt-2.5 tablet:pt-2.5 border-t border-neutral-100 flex items-center justify-between">
+        <div className="mt-2 pt-2 tablet:mt-2.5 tablet:pt-2.5 border-t border-neutral-100 flex items-center justify-between relative z-10">
           <span className={`text-[10px] tablet:text-xs font-extrabold px-2 py-0.5 rounded-lg ${card.rewardColor}`}>
             {card.reward}
           </span>

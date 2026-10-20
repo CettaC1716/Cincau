@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Sparkles, ArrowRight, KeyRound } from 'lucide-react';
 import { CharviMascot } from './CharviMascot';
 import { CincauLogo } from './CincauLogo';
@@ -7,7 +7,6 @@ import { MascotTheme, CharviEmotion } from '../types';
 import { playPopSound } from '../utils/audioEffects';
 
 interface WelcomeScreenProps {
-  mascotTheme: MascotTheme;
   onStartRegistration: () => void;
   onSignInExisting: () => void;
 }
@@ -31,7 +30,6 @@ const DIVERSE_EMOTIONS: [CharviEmotion, CharviEmotion, CharviEmotion, CharviEmot
 ];
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
-  mascotTheme: _mascotTheme,
   onStartRegistration,
   onSignInExisting,
 }) => {
@@ -87,7 +85,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   return (
     <div
       onClick={triggerFamilyJump}
-      className="relative w-full h-full bg-gradient-to-b from-sky-50 via-amber-50/35 to-emerald-50/50 flex flex-col justify-between overflow-hidden select-none"
+      className="relative w-full min-h-screen bg-gradient-to-b from-sky-50 via-amber-50/35 to-emerald-50/50 flex flex-col justify-between overflow-y-auto select-none pb-12"
     >
       {/* Decorative ambient background glows */}
       <div className="absolute top-8 left-1/2 -translate-x-1/2 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl pointer-events-none" />
@@ -140,7 +138,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
 
             <h1 className="text-xl tablet:text-3xl landscape:text-xl tablet:landscape:text-2xl tablet-lg:landscape:text-3xl font-black text-neutral-900 tracking-tight leading-tight">
-              Halo, Petualang Cilik! 🌟
+              Halo, Petualang Cilik!
             </h1>
             <p className="text-xs tablet:text-base landscape:text-xs tablet:landscape:text-sm text-neutral-600 font-medium mt-1.5 max-w-sm leading-relaxed">
               Belajar kurikulum seru dan bermain minigame asyik bersama Cincau dan keluarga jeli yang ceria!
@@ -180,6 +178,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 <KeyRound className="w-4 h-4 text-neutral-500" />
                 <span>Saya Sudah Punya Akun</span>
               </motion.button>
+
+
             </motion.div>
           </motion.div>
         </div>
@@ -220,7 +220,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             initial={{ x: -160, opacity: 0, scale: 0.8 }}
             animate={{ x: 0, opacity: 1, scale: 1 }}
             transition={{ duration: 0.65, type: 'spring', damping: 18, stiffness: 120 }}
-            className="absolute left-2 mobile-lg:left-4 tablet:left-8 bottom-24 mobile-lg:bottom-28 tablet:bottom-36 tablet:landscape:bottom-28 z-20"
+            className="absolute left-6 top-16 tablet:top-20 z-20"
           >
             <motion.div
               animate={{
@@ -265,7 +265,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             initial={{ x: 160, opacity: 0, scale: 0.8 }}
             animate={{ x: 0, opacity: 1, scale: 1 }}
             transition={{ duration: 0.65, delay: 0.1, type: 'spring', damping: 18, stiffness: 120 }}
-            className="absolute right-2 mobile-lg:right-4 tablet:right-8 bottom-26 mobile-lg:bottom-30 tablet:bottom-38 tablet:landscape:bottom-30 z-20"
+            className="absolute right-6 top-16 tablet:top-20 z-20"
           >
             <motion.div
               animate={{
@@ -310,7 +310,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             initial={{ y: -120, x: 60, opacity: 0, scale: 0.7 }}
             animate={{ y: 0, x: 0, opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.2, type: 'spring', damping: 18, stiffness: 120 }}
-            className="absolute right-6 mobile-lg:right-12 tablet:right-24 bottom-38 mobile-lg:bottom-44 tablet:bottom-56 tablet:landscape:bottom-44 z-20"
+            className="absolute left-1/2 -translate-x-1/2 top-8 tablet:top-12 z-20"
           >
             <motion.div
               animate={{

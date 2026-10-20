@@ -1,0 +1,218 @@
+<!DOCTYPE html><html class="h-full" lang="id"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bento Cards - Kurikulum Merdeka</title>
+<!-- Tailwind CSS CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    };
+</script>
+<style>
+  /* Entrance Animations */
+  @keyframes entranceFadeUp {
+    0% {
+      opacity: 0;
+      transform: translateY(28px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .card-enter-1 {
+    animation: entranceFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+  }
+  .card-enter-2 {
+    animation: entranceFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+  }
+  .card-enter-3 {
+    animation: entranceFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+  }
+
+  /* Micro-Motion keyframes */
+  @keyframes floatDrift {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-14px) rotate(10deg);
+    }
+  }
+
+  /* Pulse button halo */
+  @keyframes buttonPulseRing {
+    0% {
+      box-shadow: 0 0 0 0 rgba(163, 230, 53, 0.55);
+    }
+    70% {
+      box-shadow: 0 0 0 14px rgba(163, 230, 53, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(163, 230, 53, 0);
+    }
+  }
+
+  .btn-lime-pulse:hover {
+    animation: buttonPulseRing 1.8s infinite cubic-bezier(0.24, 0, 0.38, 1);
+  }
+
+  /* Ripple click effect */
+  .ripple-circle {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: rippleWave 0.6s ease-out;
+    background-color: rgba(255, 255, 255, 0.45);
+    pointer-events: none;
+  }
+
+  @keyframes rippleWave {
+    to {
+      transform: scale(3.5);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans antialiased selection:bg-lime-200 relative overflow-x-hidden" style="background: linear-gradient(135deg, #fbfaff 0%, #f4f2ff 50%, #ece8fc 100%); min-height: 100vh;">
+<!-- Ambient Floating Geometric Background Elements -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden z-0 select-none">
+<div class="absolute -top-[15%] left-1/2 -translate-x-1/2 w-[750px] h-[450px] rounded-full bg-gradient-to-b from-[#e0d7ff]/40 to-[#ede9fe]/20 blur-3xl pointer-events-none"></div>
+<div class="absolute bottom-[-10%] -left-[10%] w-[600px] h-[500px] rounded-full bg-[#c7d2fe]/30 blur-3xl pointer-events-none"></div>
+<div class="absolute top-[12%] left-[8%] w-7 h-7 rounded-lg bg-purple-200/40 rotate-12 backdrop-blur-sm shadow-sm" style="animation: 7s ease-in-out 0s infinite normal none running floatDrift;"></div>
+<div class="absolute top-[18%] right-[12%] w-9 h-9 rounded-full bg-amber-200/50 backdrop-blur-sm shadow-sm" style="animation: 9s ease-in-out 1.5s infinite normal none running floatDrift;"></div>
+<div class="absolute bottom-[14%] left-[10%] w-8 h-8 bg-purple-200/40 rotate-45 rounded-md backdrop-blur-sm shadow-sm" style="animation: 8s ease-in-out 0.7s infinite normal none running floatDrift;"></div>
+<div class="absolute bottom-[18%] right-[8%] w-6 h-6 bg-rose-300/40 rounded-full backdrop-blur-sm shadow-sm" style="animation: 6.5s ease-in-out 2s infinite normal none running floatDrift;"></div>
+<div class="absolute top-[50%] left-[3%] w-5 h-5 bg-sky-200/40 rotate-12 rounded-md backdrop-blur-sm shadow-sm" style="animation: 8.5s ease-in-out 3s infinite normal none running floatDrift;"></div>
+<div class="absolute top-[65%] right-[6%] w-7 h-7 border-2 border-pink-200/60 rounded-xl rotate-45 backdrop-blur-sm shadow-sm" style="animation: 7.5s ease-in-out 1.2s infinite normal none running floatDrift;"></div>
+</div>
+<!-- Main 2-Column Tablet Layout (Strictly Matching Tiny Tales Reference) -->
+<main class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-6xl w-full mx-auto items-stretch" data-purpose="bento-grid-wrapper">
+<!-- LEFT COLUMN (Hero Area: Membaca - Tall Portrait proportion) -->
+<section class="card-enter-1 lg:col-span-7 h-[560px] lg:h-[600px] rounded-[32px] bg-white border border-white/70 shadow-xl shadow-indigo-500/5 hover:shadow-2xl hover:-translate-y-1.5 active:scale-[0.985] transition-all duration-300 ease-out cursor-pointer relative flex flex-col justify-between overflow-hidden group">
+<!-- Top Content -->
+<div class="relative z-20 p-8 sm:p-10 select-none">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-lime-100 text-lime-900 border border-lime-200/80 mb-3 group-hover:bg-lime-200 transition-colors">UTAMA • LITERASI</span>
+<h2 class="text-4xl sm:text-5xl font-black text-[#0f172a] tracking-tight mb-2 group-hover:text-black transition-colors">Membaca</h2>
+<p class="text-sm sm:text-base font-medium text-slate-500 max-w-[340px] leading-relaxed group-hover:text-slate-600 transition-colors">Eksplorasi Kurikulum Merdeka &amp; Tantangan Seru Bersama</p>
+</div>
+<!-- Magical 3D Diorama Illustration (IMAGE_29) -->
+<div class="absolute inset-0 overflow-hidden flex items-end justify-center pointer-events-none rounded-[32px]">
+<img alt="Budi &amp; Siti belajar bersama di bawah pohon perpustakaan ajaib" class="w-full h-full object-cover object-bottom rounded-[32px] transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AEtjO1XYV3u5DXyEQCSM01Tw4jZqQYJlUnYuyOE8ab91u8Blys4uCtnVyD_wa0rdAiliIEJPIseHklm_0kuws6u0ZGcvfUnacNwwYWmTS5YQvJbFWkrq5NZOrf4IINJ6WeRSeQwhjCf_4J63DXiTAaXuDwIJOrnYPRuw6BUrcEgyeHZOiiV2D86nis8JnF6AxEO_7yYiyFk8WegBdPEF2wNmqRTLG9espokln23YBKbXVGFPFQ8HkmTDMPHoMeE" style="mask-image: linear-gradient(to bottom, transparent 0%, transparent 12%, rgba(0,0,0,0.45) 28%, rgba(0,0,0,0.9) 46%, black 65%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 12%, rgba(0,0,0,0.45) 28%, rgba(0,0,0,0.9) 46%, black 65%);">
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/80 pointer-events-none"></div>
+<div class="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white via-white/85 to-transparent pointer-events-none"></div>
+</div>
+<!-- Bottom Action Area (Play pill / action button) -->
+<div class="relative z-20 p-8 sm:p-10 flex items-center justify-between">
+<button aria-label="Mulai Membaca" class="interactive-btn btn-lime-pulse inline-flex items-center gap-3 px-6 py-4 rounded-full bg-[#a3e635] text-[#0f172a] font-extrabold text-base shadow-[0_10px_25px_rgba(163,230,53,0.5)] active:scale-95 transition-all duration-200 hover:brightness-105 cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#a3e635]/40 group/btn" type="button">
+<span>Mulai Membaca</span>
+<div class="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
+<svg class="w-4 h-4 text-[#0f172a] fill-current ml-0.5 group-hover/btn:translate-x-0.5 transition-transform" viewBox="0 0 24 24">
+<path d="M8 5v14l11-7z"></path>
+</svg>
+</div>
+</button>
+</div>
+</section>
+<!-- RIGHT COLUMN (Two stacked wide cards: Main Game + Menggambar) -->
+<div class="lg:col-span-5 flex flex-col justify-between gap-6 h-full">
+<!-- CARD 2 (Top Right: Main Game - IMAGE_28) -->
+<section class="card-enter-2 flex-1 min-h-[275px] rounded-[32px] bg-white border border-white/70 shadow-xl shadow-indigo-500/5 hover:shadow-2xl hover:-translate-y-1.5 active:scale-[0.985] transition-all duration-300 ease-out cursor-pointer p-6 sm:p-7 relative flex justify-between overflow-hidden group">
+<!-- Left Content -->
+<div class="relative z-20 max-w-[210px] select-none flex flex-col justify-between h-full">
+<div>
+<span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 block group-hover:text-sky-600 transition-colors">PETUALANGAN GAME</span>
+<h3 class="text-2xl sm:text-3xl font-black text-[#0f172a] tracking-tight mt-1 mb-2">Main Game</h3>
+<p class="text-xs text-slate-500 font-medium line-clamp-2">Petualangan interaktif seru dengan misi menyenangkan.</p>
+</div>
+<!-- Action Button -->
+<div class="pt-4">
+<button aria-label="Mulai Game" class="interactive-btn relative overflow-hidden w-12 h-12 rounded-full bg-[#1e293b] flex items-center justify-center text-white shadow-lg shadow-slate-900/20 active:scale-90 active:rotate-3 transition-all duration-200 hover:bg-[#0f172a] hover:scale-105 cursor-pointer focus:outline-none group/btn" type="button">
+<svg class="w-5 h-5 fill-current ml-0.5 group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-transform duration-300" viewBox="0 0 24 24">
+<path d="M8 5v14l11-7z"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Character 3D Diorama Visual (IMAGE_28) Anchored Right Side -->
+<div class="absolute right-0 bottom-0 top-0 w-[270px] sm:w-[300px] pointer-events-none overflow-hidden flex items-end justify-end rounded-r-[32px]">
+<img alt="Budi menerbangkan pesawat kertas ajaib" class="w-full h-full object-cover object-center rounded-r-[32px] transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AEtjO1X3dl4AVbNPja_CVWO1pUSOyNzU2392sCkzyygSDhOfbAAoOWqFcuj_o9xBk-skggaA9k02J491hjAOLviuwcuIPN2bmmjZe2fLXbYsrvYqNHkjBJ0y4G7HxNhUD5XGI0Uo4FHO1ANKd3ZiMKHRJIHMhYYrEe2rkduZqOjSbMU4Nomcd7fH4oU3tgGa5nE-2a7xu3sP93mIpJXh8O1fvuRLk5HPR_799guhDUNQ1a3nsZkxsvOyx1Zkvxw" style="mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.25) 12%, black 35%); -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.25) 12%, black 35%);">
+<div class="absolute inset-0 bg-gradient-to-r from-white via-white/80 via-20% to-transparent to-45% pointer-events-none"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-sky-500/10 via-transparent to-transparent pointer-events-none"></div>
+</div>
+</section>
+<!-- CARD 3 (Bottom Right: Menggambar - IMAGE_27) -->
+<section class="card-enter-3 flex-1 min-h-[275px] rounded-[32px] bg-white border border-white/70 shadow-xl shadow-indigo-500/5 hover:shadow-2xl hover:-translate-y-1.5 active:scale-[0.985] transition-all duration-300 ease-out cursor-pointer p-6 sm:p-7 relative flex justify-between overflow-hidden group">
+<!-- Left Content -->
+<div class="relative z-20 max-w-[210px] select-none flex flex-col justify-between h-full">
+<div>
+<span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 block group-hover:text-amber-600 transition-colors">KREASI &amp; SENI</span>
+<h3 class="text-2xl sm:text-3xl font-black text-[#0f172a] tracking-tight mt-1 mb-2">Menggambar</h3>
+<p class="text-xs text-slate-500 font-medium line-clamp-2">Kanvas kreasi warna-warni penuh imajinasi anak.</p>
+</div>
+<!-- Action Button -->
+<div class="pt-4">
+<button aria-label="Mulai Menggambar" class="interactive-btn relative overflow-hidden w-12 h-12 rounded-full bg-[#1e293b] flex items-center justify-center text-white shadow-lg shadow-slate-900/20 active:scale-90 active:rotate-3 transition-all duration-200 hover:bg-[#0f172a] hover:scale-105 cursor-pointer focus:outline-none group/btn" type="button">
+<svg class="w-5 h-5 fill-current ml-0.5 group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-transform duration-300" viewBox="0 0 24 24">
+<path d="M8 5v14l11-7z"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Character 3D Diorama Visual (IMAGE_27) Anchored Right Side -->
+<div class="absolute right-0 bottom-0 top-0 w-[270px] sm:w-[300px] pointer-events-none overflow-hidden flex items-end justify-end rounded-r-[32px]">
+<img alt="Siti melukis dengan kuas ajaib dan pelangi" class="w-full h-full object-cover object-center rounded-r-[32px] transition-transform duration-500 ease-out group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AEtjO1WAD5u9xIGRv1BJ740OeQYJERGc_lc_WJgZ4BhSyKvsaC0Uq3Px72Jl0BBuJ5dCl5lbyGrWbvwPNd4fCx4MmWIThv8PvI1XB3QyJPsvxrFcmIhiwFUG3s3q8EZC7QTUtrQRg4b557Ja5ZpdkPohJE9z2p8u6lsPBfrhVzsfVPpXj3T7bWhHRec48Y_2HXRswFJ5u9n0wfmPELWCTPQOgSHCMiOLd2AOa14-EnTcryEo7We2oTGDahmwcg" style="mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.25) 12%, black 35%); -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.25) 12%, black 35%);">
+<div class="absolute inset-0 bg-gradient-to-r from-white via-white/80 via-20% to-transparent to-45% pointer-events-none"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-emerald-500/10 via-transparent to-transparent pointer-events-none"></div>
+</div>
+</section>
+</div>
+</main>
+<script>
+  // Ripple effect on tactile action button clicks
+  const buttons = document.querySelectorAll('.interactive-btn');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', function (e) {
+      const circle = document.createElement('span');
+      circle.classList.add('ripple-circle');
+      
+      const diameter = Math.max(this.clientWidth, this.clientHeight);
+      const radius = diameter / 2;
+      const rect = this.getBoundingClientRect();
+
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.clientX - rect.left - radius}px`;
+      circle.style.top = `${e.clientY - rect.top - radius}px`;
+
+      const existingRipple = this.querySelector('.ripple-circle');
+      if (existingRipple) {
+        existingRipple.remove();
+      }
+
+      this.appendChild(circle);
+      setTimeout(() => circle.remove(), 600);
+    });
+  });
+</script>
+</body></html>

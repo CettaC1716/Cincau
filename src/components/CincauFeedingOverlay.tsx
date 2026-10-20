@@ -8,8 +8,9 @@ import {
   playCheerSound,
   playPurrSound,
 } from '../utils/audioEffects';
-import { Sparkles, Heart, Settings, X, RefreshCw, Volume2, Hand } from 'lucide-react';
-import { CharviEmotion, LookTarget } from '../types';
+import { Heart, Settings, RefreshCw, Volume2 } from 'lucide-react';
+import { CharviEmotion, LookTarget, ChildProfile } from '../types';
+import { ProfileAvatar } from './ProfileAvatar';
 
 export interface FoodInventory {
   honey: number;
@@ -32,79 +33,50 @@ interface Particle {
 }
 
 interface CincauFeedingOverlayProps {
-  isMenuOpen: boolean;
   isFeedingOpen: boolean;
-  onOpenMenu: () => void;
-  onCloseMenu: () => void;
   onOpenFeeding: () => void;
   onCloseFeeding: () => void;
   onFeedSuccess: (food: FoodType, message: string) => void;
   onPetMascot: () => void;
-  onHpChange?: (hp: number) => void;
   onMascotEmotionChange?: (emotion: CharviEmotion) => void;
   onLookTargetChange?: (target: LookTarget | null) => void;
   mascotContainerRef: React.RefObject<HTMLDivElement | null>;
-  hp?: number;
-  setHp?: React.Dispatch<React.SetStateAction<number>>;
+  hp: number;
+  setHp?: (updater: number | ((prev: number) => number)) => void;
+  inventory: FoodInventory;
   isLandscapeHomescreen?: boolean;
   isLandscapeTopRight?: boolean;
+  onOpenProfile?: () => void;
+  onOpenSalon?: () => void;
+  childProfile?: ChildProfile | null;
+  isVerticalSidebar?: boolean;
+  hideNavBar?: boolean;
 }
 
 export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
-  isMenuOpen,
   isFeedingOpen,
-  onOpenMenu,
-  onCloseMenu,
   onOpenFeeding,
   onCloseFeeding,
   onFeedSuccess,
   onPetMascot,
-  onHpChange,
   onMascotEmotionChange,
   onLookTargetChange,
   mascotContainerRef,
-  hp: externalHp,
-  setHp: externalSetHp,
+  hp,
+  setHp,
+  inventory,
   isLandscapeHomescreen = false,
   isLandscapeTopRight = false,
+  onOpenProfile,
+  onOpenSalon,
+  childProfile,
+  isVerticalSidebar = false,
+  hideNavBar = false,
 }) => {
-  // Internal HP fallback if parent doesn't provide hp or setHp
-  const [internalHp, setInternalHp] = useState<number>(75);
-
-  const currentHp = typeof externalHp === 'number' && !isNaN(externalHp) ? externalHp : internalHp;
-
-  const updateHp = useCallback((updater: number | ((prev: number) => number)) => {
-    if (externalSetHp) {
-      externalSetHp(updater);
-    }
-    setInternalHp((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater;
-      return isNaN(next) ? 75 : next;
-    });
-  }, [externalSetHp]);
-
   // Floating HP gained badge (+6 HP or +30 HP)
   const [floatingHpText, setFloatingHpText] = useState<{ id: number; text: string } | null>(null);
 
-  // Sync HP back to parent if needed for legacy components (optional)
-  useEffect(() => {
-    if (onHpChange) onHpChange(currentHp);
-  }, [currentHp, onHpChange]);
-
-  // HP menyurut (gradual depletion like a healthbar over time, min 15 so Cincau stays alive)
-  useEffect(() => {
-    const decayTimer = setInterval(() => {
-      updateHp((prev) => Math.max(15, prev - 1));
-    }, 12000);
-    return () => clearInterval(decayTimer);
-  }, [updateHp]);
-
-  // Inventory state for rewards
-  const [inventory, setInventory] = useState<FoodInventory>({
-    honey: 1,
-    apple: 1,
-    watermelon: 1,
-  });
+  const totalFoodCount = inventory.honey + inventory.apple + inventory.watermelon;
 
   // Sound toggle state for the playful settings
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -122,15 +94,13 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
   const [cincauSpeech, setCincauSpeech] = useState<string | null>(null);
   const speechTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Jika kapsul feed (isMenuOpen) atau mode memberi makan (isFeedingOpen) muncul, bubble chat Cincau segera hilang
+  // Jika mode memberi makan (isFeedingOpen) muncul, bubble chat Cincau segera hilang
   useEffect(() => {
-    if (isMenuOpen || isFeedingOpen) {
+    if (isFeedingOpen) {
       setCincauSpeech(null);
       if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
     }
-  }, [isMenuOpen, isFeedingOpen]);
-
-  const totalFoodCount = inventory.honey + inventory.apple + inventory.watermelon;
+  }, [isFeedingOpen]);
 
   const showSpeech = useCallback((text: string, durationMs = 3800) => {
     setCincauSpeech(text);
@@ -171,12 +141,6 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
       setTimeout(playCheerSound, 250);
     }
 
-    // Decrement inventory
-    setInventory((prev) => ({
-      ...prev,
-      [food]: Math.max(0, prev[food] - 1),
-    }));
-
     // Trigger mascot reaction: Candy Pink ('excited' makan) -> Golden Yellow ('happy') -> Sky Blue ('idle')
     if (onMascotEmotionChange) {
       onMascotEmotionChange('excited');
@@ -188,9 +152,8 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
       }, 3000);
     }
 
-    // HP calculation for food: Giving food restores significantly more HP than petting (+25 to +35 HP)
+    // HP gain calculation (for visual feedback only, logic happens in hook)
     const hpGain = food === 'honey' ? 35 : food === 'apple' ? 30 : 25;
-    updateHp((prev) => Math.min(100, prev + hpGain));
     setFloatingHpText({ id: Date.now(), text: `+${hpGain} HP` });
     setTimeout(() => setFloatingHpText(null), 1400);
 
@@ -210,7 +173,7 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
     const posX = dropX ?? (window.innerWidth / 2);
     const posY = dropY ?? (window.innerHeight * 0.72);
     spawnParticles(posX, posY, 'food');
-  }, [inventory, soundEnabled, onMascotEmotionChange, onFeedSuccess, showSpeech, spawnParticles, updateHp]);
+  }, [soundEnabled, onMascotEmotionChange, onFeedSuccess, showSpeech, spawnParticles]);
 
   // Pointer drag events for food items
   const handlePointerDown = (e: React.PointerEvent, food: FoodType) => {
@@ -312,15 +275,14 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
     }
 
     const loveHpGain = 6;
-    updateHp((prev) => Math.min(100, prev + loveHpGain));
+    if (setHp) setHp((prev) => Math.min(100, prev + loveHpGain));
     setFloatingHpText({ id: Date.now(), text: `+${loveHpGain} HP 💕` });
     setTimeout(() => setFloatingHpText(null), 1200);
 
     const speechText =
-      currentHp + loveHpGain >= 100
+      hp + loveHpGain >= 100
         ? 'Wahhh Cincau senang banget! HP Cincau Penuh 100%! 🥰💖'
         : `Aww, geli tapi enak! (+${loveHpGain} HP) Cincau sayang kamu! 🥰💖`;
-    showSpeech(speechText, 3200);
     showSpeech(speechText, 3200);
 
     const rect = mascotContainerRef.current?.getBoundingClientRect();
@@ -333,160 +295,152 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
   // Refill rewards if all food is finished
   const handleRefillRewards = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (soundEnabled) playCheerSound();
-    setInventory({ honey: 1, apple: 1, watermelon: 1 });
-    showSpeech('Horeee! Keranjang hadiah terisi kembali! 🎉🍓', 3000);
+    // This logic should ideally be passed from hook, but for now we just show a message
+    showSpeech('Buka misi belajar untuk dapat makanan baru! 🎉🍓', 3000);
   };
 
   return (
     <>
       {/* 1. HORIZONTAL BUBBLE MENU ABOVE CINCAU (Triggered by double-tap) */}
-      <AnimatePresence>
-        {isMenuOpen && (
+      {!hideNavBar && (
+        <AnimatePresence>
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 10 }}
             transition={{ type: 'spring', damping: 20, stiffness: 280 }}
             onClick={(e) => e.stopPropagation()}
-            className={`absolute z-40 flex items-center gap-2 tablet:gap-2.5 px-3 py-1.5 tablet:py-2 bg-white/95 backdrop-blur-md rounded-full shadow-[0_12px_36px_rgba(0,0,0,0.16)] border-2 border-amber-200/90 pointer-events-auto max-w-[94vw] tablet:max-w-md ${
-              isLandscapeTopRight
-                ? 'top-[30%] tablet:top-[34%] right-2 tablet:right-6 left-auto translate-x-0'
-                : isLandscapeHomescreen
-                ? 'bottom-[48%] tablet:bottom-[54%] right-4 tablet:right-10 left-auto translate-x-0'
-                : 'bottom-[40%] tablet:bottom-[45%] left-1/2 -translate-x-1/2'
-            }`}
+            className={isVerticalSidebar 
+              ? "relative z-40 flex flex-col items-center gap-1.5 px-2 py-3 bg-white/95 backdrop-blur-md rounded-[24px] shadow-[0_8px_24px_rgba(0,0,0,0.1)] border-2 border-amber-200/80 pointer-events-auto w-full"
+              : "absolute z-40 flex flex-col items-end gap-1 px-1.5 py-2 bg-white/95 backdrop-blur-md rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.1)] border-2 border-amber-200/80 pointer-events-auto bottom-3 right-2 tablet:hidden tablet-md:hidden"
+            }
           >
-            {/* Bubble pointer tail */}
-            <div className={`absolute ${
-              isLandscapeTopRight
-                ? '-top-2 w-4 h-4 bg-white rotate-45 border-l-2 border-t-2 border-amber-200/90 right-14'
-                : isLandscapeHomescreen
-                ? '-bottom-2 w-4 h-4 bg-white rotate-45 border-r-2 border-b-2 border-amber-200/90 right-16'
-                : '-bottom-2 w-4 h-4 bg-white rotate-45 border-r-2 border-b-2 border-amber-200/90 left-1/2 -translate-x-1/2'
-            }`} />
-
-            {/* Item 1: Keranjang Hadiah / Reward Basket (Primary Action) */}
-            <motion.button
-              whileHover={{ scale: 1.08, rotate: -2 }}
-              whileTap={{ scale: 0.94 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (soundEnabled) playPopSound();
-                onCloseMenu();
-                onOpenFeeding();
-              }}
-              className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-linear-to-r from-amber-400 to-orange-400 text-white font-bold text-xs shadow-md shadow-orange-400/30 cursor-pointer active:scale-95 transition-all group"
-              title="Buka Keranjang Hadiah Makanan"
-            >
-              <div className="relative">
-                <FruitBasketIcon className="w-6 h-6 drop-shadow group-hover:scale-110 transition-transform" />
-                {totalFoodCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-2xs animate-bounce">
-                    {totalFoodCount}
-                  </span>
-                )}
-              </div>
-              <span className="tracking-tight text-white drop-shadow-xs">Hadiah Buah</span>
-            </motion.button>
-
-            {/* Item 2: Icon Love & Radial Healthbar (Lingkaran pink lebih tua yang menyurut seperti healthbar) */}
-            <div className="relative flex items-center justify-center">
+            {/* Item 0: Mood / Profil Si Kecil */}
+            <div className="flex items-center gap-2 group/item">
+              <span className="text-[9px] tablet:text-[10px] font-black text-neutral-600 bg-neutral-100/80 px-1.5 py-0.5 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity">Mood</span>
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handlePetAction}
-                className={`relative flex items-center justify-center w-10 h-10 rounded-full bg-pink-50/90 hover:bg-pink-100 transition-all cursor-pointer shadow-xs group ${
-                  currentHp <= 30 ? 'animate-pulse ring-2 ring-pink-400 ring-offset-1' : ''
-                }`}
-                title={`HP Cincau: ${Math.round(currentHp)}% (Tekan Love: +6 HP, Beri Makan: +30 HP)`}
+                whileHover={{ scale: 1.1, rotate: -2 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (soundEnabled) playPopSound();
+                  if (onOpenProfile) onOpenProfile();
+                }}
+                className="flex items-center justify-center w-8 h-8 tablet:w-9 tablet:h-9 rounded-full bg-gradient-to-br from-rose-400 via-pink-500 to-rose-500 border-2 border-white transition-all cursor-pointer shadow-sm overflow-hidden"
+                title="Profil Si Kecil"
               >
-                {/* SVG Radial Healthbar Gauge: Warna pink yang lebih tua (#db2777 / #be185d) */}
-                <svg
-                  className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
-                  viewBox="0 0 40 40"
-                >
-                  {/* Background Track Circle */}
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="16"
-                    fill="transparent"
-                    stroke="#fce7f3"
-                    strokeWidth="3"
-                  />
-                  {/* Depleting Healthbar Ring (Warna pink lebih tua yang menyurut) */}
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="16"
-                    fill="transparent"
-                    stroke="#db2777"
-                    strokeWidth="3.2"
-                    strokeDasharray={100.53}
-                    strokeDashoffset={100.53 * (1 - Math.max(0, Math.min(100, typeof currentHp === 'number' && !isNaN(currentHp) ? currentHp : 75)) / 100)}
-                    strokeLinecap="round"
-                    className="transition-all duration-500 ease-out"
-                  />
-                </svg>
-
-                {/* Love Icon (Warna pink lebih tua) */}
-                <Heart className="w-4 h-4 fill-[#db2777] text-[#db2777] drop-shadow-2xs group-hover:scale-115 transition-transform" />
-
-                {/* Indikator Angka HP Mini */}
-                <span className="absolute -bottom-1 -right-1 bg-[#be185d] text-white text-[8.5px] font-black px-1 rounded-full border border-white shadow-2xs leading-tight">
-                  {Math.round(currentHp)}
-                </span>
+                <ProfileAvatar gender={childProfile?.gender || 'boy'} className="w-6 h-6 invert brightness-[2.5]" />
               </motion.button>
-
-              {/* Floating +HP Toast Animation */}
-              <AnimatePresence>
-                {floatingHpText && (
-                  <motion.div
-                    key={floatingHpText.id}
-                    initial={{ opacity: 1, y: 0, scale: 0.85 }}
-                    animate={{ opacity: 0, y: -26, scale: 1.1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1, ease: 'easeOut' }}
-                    className="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap px-1.5 py-0.5 rounded-full bg-linear-to-r from-rose-500 to-pink-600 text-white font-black text-[10px] shadow-md shadow-pink-500/30 flex items-center gap-0.5 z-50 border border-white"
-                  >
-                    <span>{floatingHpText.text}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
-            {/* Item 3: Pengaturan Ceria / Suara */}
-            <motion.button
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (soundEnabled) playPopSound();
-                setShowSettingsModal(true);
-              }}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-200 transition-colors cursor-pointer shadow-xs"
-              title="Pengaturan Suara & Aplikasi"
-            >
-              <Settings className="w-4 h-4" />
-            </motion.button>
+            {/* Divider */}
+            <div className="h-px w-5 bg-neutral-100 mx-auto" />
 
-            {/* Item 4: Tutup Menu */}
-            <motion.button
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onCloseMenu();
-              }}
-              className="flex items-center justify-center min-h-[44px] min-w-[44px] w-9 h-9 rounded-2xl bg-neutral-100 hover:bg-neutral-200 text-neutral-600 transition-colors cursor-pointer ml-0.5 shadow-2xs"
-              title="Tutup Menu"
-            >
-              <X className="w-4 h-4 tablet:w-5 tablet:h-5" />
-            </motion.button>
+            {/* Item 1: Kostum / Salon */}
+            <div className="flex items-center gap-2 group/item">
+              <span className="text-[9px] tablet:text-[10px] font-black text-neutral-600 bg-neutral-100/80 px-1.5 py-0.5 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity">Kostum</span>
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 2 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (soundEnabled) playPopSound();
+                  if (onOpenSalon) onOpenSalon();
+                }}
+                className="flex items-center justify-center w-8 h-8 tablet:w-9 tablet:h-9 rounded-full bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-500 border-2 border-white transition-all cursor-pointer shadow-sm"
+                title="Salon & Kostum Cincau"
+              >
+                <span className="text-base drop-shadow-sm">💇‍♂️</span>
+              </motion.button>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px w-5 bg-neutral-100 mx-auto" />
+
+            {/* Item 2: Makan / Keranjang Hadiah */}
+            <div className="flex items-center gap-2 group/item">
+              <span className="text-[9px] tablet:text-[10px] font-black text-neutral-600 bg-neutral-100/80 px-1.5 py-0.5 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity">Makan</span>
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: -3 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (soundEnabled) playPopSound();
+                  onOpenFeeding();
+                }}
+                className="relative flex items-center justify-center w-8 h-8 tablet:w-9 tablet:h-9 rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-amber-500 border-2 border-white transition-all cursor-pointer shadow-sm group"
+                title="Buka Keranjang Hadiah Makanan"
+              >
+                <div className="relative">
+                  <FruitBasketIcon className="w-5 h-5 drop-shadow-sm group-hover:scale-110 transition-transform brightness-0 invert" />
+                  {totalFoodCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 bg-white text-orange-800 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-orange-200 shadow-xs animate-bounce">
+                      {totalFoodCount}
+                    </span>
+                  )}
+                </div>
+              </motion.button>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px w-5 bg-neutral-100 mx-auto" />
+
+            {/* Item 3: Sayang / Icon Love & Radial Healthbar */}
+            <div className="flex items-center gap-2 group/item">
+              <span className="text-[9px] tablet:text-[10px] font-black text-neutral-600 bg-neutral-100/80 px-1.5 py-0.5 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity">Sayang</span>
+              <div className="relative flex items-center justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handlePetAction}
+                  className={`relative flex items-center justify-center w-8 h-8 tablet:w-9 tablet:h-9 rounded-full bg-pink-50 hover:bg-pink-100 transition-all cursor-pointer shadow-xs border border-pink-200/50 group ${
+                    hp <= 30 ? 'animate-pulse ring-2 ring-pink-400 ring-offset-1' : ''
+                  }`}
+                  title={`HP Cincau: ${Math.round(hp)}%`}
+                >
+                  <svg
+                    className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+                    viewBox="0 0 40 40"
+                  >
+                    <circle cx="20" cy="20" r="17" fill="transparent" stroke="#fce7f3" strokeWidth="2.5" />
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r="17"
+                      fill="transparent"
+                      stroke="#db2777"
+                      strokeWidth="2.8"
+                      strokeDasharray={106.8}
+                      strokeDashoffset={106.8 * (1 - Math.max(0, Math.min(100, hp)) / 100)}
+                      strokeLinecap="round"
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <Heart className="w-3.5 h-3.5 fill-[#db2777] text-[#db2777] drop-shadow-2xs group-hover:scale-115 transition-transform" />
+                  <span className="absolute -bottom-1 -right-1 bg-[#be185d] text-white text-[7px] font-black px-1 rounded-full border border-white shadow-2xs leading-tight">
+                    {Math.round(hp)}
+                  </span>
+                </motion.button>
+
+                <AnimatePresence>
+                  {floatingHpText && (
+                    <motion.div
+                      key={floatingHpText.id}
+                      initial={{ opacity: 1, y: 0, scale: 0.85 }}
+                      animate={{ opacity: 0, y: -26, scale: 1.1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                      className="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap px-1.5 py-0.5 rounded-full bg-linear-to-r from-rose-500 to-pink-600 text-white font-black text-[9px] shadow-md shadow-pink-500/30 flex items-center gap-0.5 z-50 border border-white"
+                    >
+                      <span>{floatingHpText.text}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      )}
 
       {/* 2. FEEDING MODE: EXPANDED BASKET & SPLASHED FOOD ITEMS */}
       <AnimatePresence>
@@ -503,36 +457,32 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
             }}
             className={`absolute inset-0 z-35 flex flex-col pointer-events-auto select-none ${
               isLandscapeHomescreen
-                ? 'w-[52%] tablet:w-[48%] items-center justify-center pl-2 tablet:pl-6 mr-auto'
+                ? 'w-[52%] tablet:w-[48%] items-center justify-center pr-2 tablet:pr-6 ml-auto'
                 : 'items-center justify-start'
             }`}
           >
             {/* Subtle soft backdrop overlay (allows clicking outside to close) */}
-            <div className="absolute inset-0 bg-radial from-amber-500/10 via-orange-500/5 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-radial from-cyan-500/15 via-teal-500/10 to-transparent pointer-events-none" />
 
             {/* EXPANDED BASKET (Zoomed into stage with playful pop) */}
             <motion.div
-              initial={{ scale: 0.3, y: 80, opacity: 0 }}
+              initial={{ scale: 0.7, y: 30, opacity: 0 }}
               animate={{
                 scale: 1,
                 y: 0,
                 opacity: 1,
               }}
-              exit={{ scale: 0.3, y: 60, opacity: 0 }}
+              exit={{ scale: 0.7, y: 20, opacity: 0 }}
               transition={{
                 type: 'spring',
-                damping: 18,
-                stiffness: 240,
-                mass: 0.9,
+                damping: 22,
+                stiffness: 380,
               }}
               onClick={(e) => e.stopPropagation()}
               className={`flex flex-col items-center relative z-25 ${
                 isLandscapeHomescreen ? 'mt-2 tablet:mt-3 scale-85 tablet:scale-90' : 'mt-14'
               }`}
             >
-              {/* Golden Sunburst / Glow behind basket */}
-              <div className="absolute -inset-10 bg-radial from-amber-300/35 via-orange-200/20 to-transparent blur-xl pointer-events-none animate-pulse" />
-
               {/* Basket Icon (Click to close menu) */}
               <div
                 onClick={(e) => {
@@ -546,7 +496,7 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
                 <FruitBasketIcon className={isLandscapeHomescreen ? 'w-14 h-14 tablet:w-16 tablet:h-16' : 'w-20 h-20 tablet:w-28 tablet:h-28'} />
 
                 {/* Sparkling open badge */}
-                <div className="absolute -top-1 -right-1 bg-amber-400 text-amber-950 font-black text-[9px] tablet:text-[10px] px-1.5 py-0.5 rounded-full shadow-md border border-white flex items-center gap-0.5">
+                <div className="absolute -top-1 -right-1 bg-teal-400 text-teal-950 font-black text-[9px] tablet:text-[10px] px-1.5 py-0.5 rounded-full shadow-md border border-white flex items-center gap-0.5">
                   <span>Terbuka</span>
                   <span>✨</span>
                 </div>
@@ -564,13 +514,13 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
                   </p>
                   <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-pink-50 border border-pink-200 shadow-2xs">
                     <Heart className="w-2.5 h-2.5 fill-[#db2777] text-[#db2777]" />
-                    <span className="text-[9px] font-bold text-[#be185d]">HP {Math.round(typeof currentHp === 'number' && !isNaN(currentHp) ? currentHp : 75)}%</span>
+                    <span className="text-[9px] font-bold text-[#be185d]">HP {Math.round(hp)}%</span>
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* SPLASHED FOOD ITEMS SPREAD IN THE AREA */}
+            {/* SPLASHED FOOD ITEMS SPREAD IN THE AREA - Instant high fps pop */}
             <div
               onClick={(e) => e.stopPropagation()}
               className={`w-full max-w-xs tablet:max-w-sm px-2 tablet:px-4 flex justify-around items-center z-30 ${
@@ -580,16 +530,18 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
               {/* 1. Botol Madu Hutan */}
               <div className="flex flex-col items-center">
                 <motion.div
-                  initial={{ scale: 0, y: -40, rotate: -20 }}
+                  initial={{ scale: 0.8, opacity: 0, y: -5 }}
                   animate={{
                     scale: 1,
-                    y: [0, -6, 0],
-                    rotate: [-3, 3, -3],
+                    opacity: 1,
+                    y: [0, -5, 0],
+                    rotate: [-2, 2, -2],
                   }}
                   transition={{
-                    scale: { type: 'spring', damping: 15, stiffness: 220, delay: 0.1 },
-                    y: { repeat: Infinity, duration: 2.8, ease: 'easeInOut', delay: 0.1 },
-                    rotate: { repeat: Infinity, duration: 3.2, ease: 'easeInOut', delay: 0.1 },
+                    scale: { type: 'spring', damping: 20, stiffness: 450, delay: 0 },
+                    opacity: { duration: 0.1 },
+                    y: { repeat: Infinity, duration: 2.8, ease: 'easeInOut' },
+                    rotate: { repeat: Infinity, duration: 3.2, ease: 'easeInOut' },
                   }}
                   onPointerDown={(e) => handlePointerDown(e, 'honey')}
                   onClick={() => handleFeedFood('honey')}
@@ -614,16 +566,18 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
               {/* 2. Apel Merah */}
               <div className="flex flex-col items-center">
                 <motion.div
-                  initial={{ scale: 0, y: -40, rotate: 15 }}
+                  initial={{ scale: 0.8, opacity: 0, y: -5 }}
                   animate={{
                     scale: 1,
-                    y: [0, -7, 0],
+                    opacity: 1,
+                    y: [0, -6, 0],
                     rotate: [2, -2, 2],
                   }}
                   transition={{
-                    scale: { type: 'spring', damping: 15, stiffness: 220, delay: 0.18 },
-                    y: { repeat: Infinity, duration: 3.1, ease: 'easeInOut', delay: 0.4 },
-                    rotate: { repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 0.3 },
+                    scale: { type: 'spring', damping: 20, stiffness: 450, delay: 0 },
+                    opacity: { duration: 0.1 },
+                    y: { repeat: Infinity, duration: 3.1, ease: 'easeInOut' },
+                    rotate: { repeat: Infinity, duration: 3.5, ease: 'easeInOut' },
                   }}
                   onPointerDown={(e) => handlePointerDown(e, 'apple')}
                   onClick={() => handleFeedFood('apple')}
@@ -648,16 +602,18 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
               {/* 3. Potong Semangka */}
               <div className="flex flex-col items-center">
                 <motion.div
-                  initial={{ scale: 0, y: -40, rotate: -15 }}
+                  initial={{ scale: 0.8, opacity: 0, y: -5 }}
                   animate={{
                     scale: 1,
-                    y: [0, -6, 0],
-                    rotate: [-3, 2, -3],
+                    opacity: 1,
+                    y: [0, -5, 0],
+                    rotate: [-2, 2, -2],
                   }}
                   transition={{
-                    scale: { type: 'spring', damping: 15, stiffness: 220, delay: 0.25 },
-                    y: { repeat: Infinity, duration: 2.9, ease: 'easeInOut', delay: 0.7 },
-                    rotate: { repeat: Infinity, duration: 3.4, ease: 'easeInOut', delay: 0.5 },
+                    scale: { type: 'spring', damping: 20, stiffness: 450, delay: 0 },
+                    opacity: { duration: 0.1 },
+                    y: { repeat: Infinity, duration: 2.9, ease: 'easeInOut' },
+                    rotate: { repeat: Infinity, duration: 3.4, ease: 'easeInOut' },
                   }}
                   onPointerDown={(e) => handlePointerDown(e, 'watermelon')}
                   onClick={() => handleFeedFood('watermelon')}
@@ -727,7 +683,7 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
               isLandscapeTopRight
                 ? 'top-4 right-1 tablet:right-4 left-auto translate-x-0 w-[220px] tablet:w-[260px] h-[170px] tablet:h-[200px]'
                 : isLandscapeHomescreen
-                ? 'bottom-2 right-4 tablet:right-10 left-auto translate-x-0 w-[240px] tablet:w-[280px] h-[180px] tablet:h-[220px]'
+                ? 'bottom-2 left-4 tablet:left-10 right-auto translate-x-0 w-[240px] tablet:w-[280px] h-[180px] tablet:h-[220px]'
                 : 'bottom-6 left-1/2 -translate-x-1/2 w-[300px] h-[220px]'
             }`}
           >
@@ -741,9 +697,9 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
         )}
       </AnimatePresence>
 
-      {/* 5. CINCAU SPEECH BUBBLE (Hidden when feed capsule or feeding overlay is active) */}
+      {/* 5. CINCAU SPEECH BUBBLE (Hidden when feeding overlay is active) */}
       <AnimatePresence>
-        {cincauSpeech && !isMenuOpen && !isFeedingOpen && (
+        {cincauSpeech && !isFeedingOpen && (
           <motion.div
             initial={{ opacity: 0, y: 15, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -753,13 +709,13 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
               isLandscapeTopRight
                 ? 'top-[18%] tablet:top-[22%] right-2 tablet:right-6 left-auto translate-x-0'
                 : isLandscapeHomescreen
-                ? 'bottom-48 tablet:bottom-56 right-4 tablet:right-12 left-auto translate-x-0'
+                ? 'bottom-48 tablet:bottom-56 left-[160px] tablet:left-[260px] right-auto translate-x-0'
                 : 'bottom-44 tablet:bottom-52 left-1/2 -translate-x-1/2'
             }`}
           >
             {/* Bubble pointer at bottom pointing down to Cincau */}
             <div className={`absolute -bottom-2 w-4 h-4 bg-white rotate-45 border-r-2 border-b-2 border-amber-200 ${
-              isLandscapeTopRight ? 'right-14' : isLandscapeHomescreen ? 'right-16' : 'left-1/2 -translate-x-1/2'
+              isLandscapeTopRight ? 'right-14' : isLandscapeHomescreen ? 'left-16' : 'left-1/2 -translate-x-1/2'
             }`} />
             <p className="text-xs sm:text-sm font-extrabold text-neutral-800 leading-snug">
               {cincauSpeech}

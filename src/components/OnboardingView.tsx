@@ -13,19 +13,70 @@ import { FruitBasketIcon } from './FruitBasketIcon';
 import { MascotTheme, CharviEmotion, LookTarget, ChildProfile } from '../types';
 import { CincauFeedingOverlay } from './CincauFeedingOverlay';
 import { playPopSound, playCheerSound } from '../utils/audioEffects';
-import { getThemeStyle } from '../utils/themeColors';
 import { HabitatWorlds } from './HabitatWorlds';
-import { AppleCatchMinigame } from './AppleCatchMinigame';
 import { useDraggableCarousel } from '../hooks/useDraggableCarousel';
 import { useTamagotchi } from '../hooks/useTamagotchi';
+import { useDailyChecklist } from '../hooks/useDailyChecklist';
+import { DailyChecklistWidget } from './DailyChecklistWidget';
+import { LearningMissionModal } from './LearningMissionModal';
 import { PLAY_CARDS, LEARN_CARDS } from '../data/cards';
 import { PlayCard } from './cards/PlayCard';
 import { LearnCard } from './cards/LearnCard';
+import { ToycadLearningRoom } from './ToycadLearningRoom';
+import { ToycadPlayRoom } from './ToycadPlayRoom';
+import { BentoActionCards } from './BentoActionCards';
+import { DrawingStudioModal } from './DrawingStudioModal';
+import { CincauSalonOverlay } from './CincauSalonOverlay';
+import { ScienceFactBubble } from './ScienceFactBubble';
+import { CincauNavBar } from './CincauNavBar';
+
+interface ScienceFact {
+  title: string;
+  fact: string;
+  explanation: string;
+}
+
+const SCIENCE_FACTS: ScienceFact[] = [
+  {
+    title: "Cahaya Matahari",
+    fact: "Tahukah kamu? Cahaya matahari membutuhkan waktu sekitar 8 menit untuk sampai ke Bumi! ☀️",
+    explanation: "Ya benar sekali, petualang cilik! Meskipun cahaya bergerak sangat super cepat yaitu sekitar 300.000 kilometer per detik, jarak antara Matahari dan planet Bumi kita sangatlah luar biasa jauh, mencapai sekitar 150 juta kilometer! Jadi kalau matahari tiba-tiba padam, kita baru akan mengetahuinya 8 menit kemudian!"
+  },
+  {
+    title: "Listrik di Otak",
+    fact: "Tahukah kamu? Otak manusia menghasilkan listrik yang cukup untuk menyalakan sebuah lampu kecil! ⚡",
+    explanation: "Ya benar! Di dalam kepala kita terdapat miliaran sel saraf yang disebut neuron. Ketika kamu sedang berpikir, belajar hal baru, atau bermain game, sel-sel saraf ini saling mengirimkan pesan menggunakan sinyal listrik mini. Hebatnya lagi, jika seluruh listrik dari semua sel saraf dikumpulkan, dayanya cukup untuk menyalakan bola lampu kecil!"
+  },
+  {
+    title: "Lautan di Bumi",
+    fact: "Tahukah kamu? Air menutupi sekitar 70% permukaan planet Bumi kita lho! 🌊",
+    explanation: "Ya benar! Itulah sebabnya mengapa jika astronot melihat planet Bumi dari angkasa luar, bumi tampak seperti kelereng biru yang sangat indah dan berkilau. Sebagian besar air di bumi berada di samudra yang luas, dan masih banyak misteri serta hewan laut unik yang belum kita temukan di dasar laut dalam!"
+  },
+  {
+    title: "Pohon Bernapas",
+    fact: "Tahukah kamu? Pohon bernapas dengan menyerap karbon dioksida dan memproduksi oksigen segar! 🌳",
+    explanation: "Ya benar! Daun pada pohon bertindak seperti pabrik ajaib pencuci udara. Mereka menghirup udara kotor (karbon dioksida) yang kita keluarkan, lalu menggunakan bantuan cahaya matahari untuk mengubahnya menjadi makanan serta oksigen segar yang kita hirup setiap hari. Makanya menanam pohon sangat penting untuk bumi!"
+  },
+  {
+    title: "Loncatan Kucing",
+    fact: "Tahukah kamu? Kucing dapat melompat hingga 6 kali lipat tinggi tubuh mereka sendiri! 🐱",
+    explanation: "Ya benar! Kucing adalah atlet lompat yang luar biasa tangguh di dunia hewan. Otot kaki belakang mereka sangat kuat, lentur, dan bekerja seperti pegas mekanik super. Selain itu, kucing selalu mendarat dengan anggun menggunakan cakar empuk mereka untuk meredam benturan!"
+  },
+  {
+    title: "Tarian Lebah",
+    fact: "Tahukah kamu? Lebah menari untuk memberitahu teman-temannya di mana letak bunga yang manis! 🐝",
+    explanation: "Ya benar! Lebah madu memiliki bahasa tubuh yang unik bernama 'tarian goyang' (waggle dance). Saat seekor lebah menemukan kebun bunga penuh nektar, ia kembali ke sarang lalu menari membentuk pola angka delapan sambil menggoyangkan perutnya untuk memberi tahu teman-teman satu sarang arah dan jarak bunga tersebut!"
+  },
+  {
+    title: "Jantung Paus Biru",
+    fact: "Tahukah kamu? Jantung paus biru sangat besar sampai-sampai manusia bisa berenang di dalam pembuluh utamanya! 🐋",
+    explanation: "Ya benar! Paus biru adalah hewan terbesar yang pernah hidup di bumi sepanjang sejarah. Ukuran tubuhnya bisa sepanjang bus kota besar, dan jantungnya saja seukuran mobil kecil! Pembuluh darah utamanya bahkan begitu besar sampai anak manusia bisa merangkak atau berenang di dalamnya!"
+  }
+];
 
 interface OnboardingViewProps {
   mascotTheme: MascotTheme;
   onToggleTheme: () => void;
-  onStart?: () => void;
   childProfile?: ChildProfile | null;
   onOpenRegistration?: () => void;
   onLogout?: () => void;
@@ -33,6 +84,7 @@ interface OnboardingViewProps {
 
 export const OnboardingView: React.FC<OnboardingViewProps> = ({
   mascotTheme,
+  onToggleTheme,
   childProfile,
   onOpenRegistration,
   onLogout,
@@ -42,16 +94,98 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
   const [bounceKey, setBounceKey] = useState<number>(0);
   const [selectedMode, setSelectedMode] = useState<'learn' | 'play' | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [isToycadLearningRoomOpen, setIsToycadLearningRoomOpen] = useState(false);
+  const [isToycadPlayRoomOpen, setIsToycadPlayRoomOpen] = useState(false);
+  const [isDrawingStudioOpen, setIsDrawingStudioOpen] = useState(false);
+  const [isSalonModalOpen, setIsSalonModalOpen] = useState(false);
+  const [isDailyChecklistOpen, setIsDailyChecklistOpen] = useState(false);
   
   // Mascot States
-  const [isHovered, setIsHovered] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
   const [mouseLookTarget, setMouseLookTarget] = useState<LookTarget>({ x: 0, y: 0.3 });
   const [mascotEmotionOverride, setMascotEmotionOverride] = useState<CharviEmotion | null>(null);
   const [dragLookTarget, setDragLookTarget] = useState<LookTarget | null>(null);
   const [isBubbleMenuOpen, setIsBubbleMenuOpen] = useState(false);
   const [isFeedingOpen, setIsFeedingOpen] = useState(false);
-  const [activeMinigame, setActiveMinigame] = useState<'apple-catch' | null>(null);
+  const [scienceFactIndex, setScienceFactIndex] = useState(0);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+
+  const fullText = useMemo(() => {
+    const current = SCIENCE_FACTS[scienceFactIndex];
+    return !isExplaining ? `${current.fact} Mau tau lebih lanjut?` : current.explanation;
+  }, [scienceFactIndex, isExplaining]);
+
+  useEffect(() => {
+    setIsTyping(true);
+    setDisplayedText('');
+    let i = 0;
+    const speed = 16;
+    const timer = setInterval(() => {
+      if (i < fullText.length) {
+        setDisplayedText(fullText.substring(0, i + 1));
+        i++;
+      } else {
+        setIsTyping(false);
+        clearInterval(timer);
+      }
+    }, speed);
+
+    return () => clearInterval(timer);
+  }, [fullText]);
+
+  const [showScienceBubble, setShowScienceBubble] = useState(true);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isInteractingModalsOpen = isFeedingOpen || isSalonModalOpen || isDailyChecklistOpen || isProfileModalOpen;
+
+  // Auto close logic
+  useEffect(() => {
+    if (showScienceBubble && !isExplaining && !isInteractingModalsOpen) {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = setTimeout(() => {
+        setShowScienceBubble(false);
+        setMascotEmotionOverride(null);
+      }, 15000);
+    } else if (isExplaining && !isInteractingModalsOpen) {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = setTimeout(() => {
+        setIsExplaining(false);
+        setShowScienceBubble(false);
+        setMascotEmotionOverride(null);
+      }, 20000);
+    } else if (isInteractingModalsOpen) {
+      // Hide science bubble immediately if any interaction modal opens
+      setShowScienceBubble(false);
+      setIsExplaining(false);
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    }
+    return () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    };
+  }, [showScienceBubble, scienceFactIndex, isExplaining, isInteractingModalsOpen]);
+
+  // Random interval pop-up when hidden
+  useEffect(() => {
+    let randomTimer: NodeJS.Timeout | null = null;
+    if (!showScienceBubble && !isInteractingModalsOpen) {
+      const randomDelay = Math.floor(Math.random() * 15000) + 25000; // 25 to 40 seconds
+      randomTimer = setTimeout(() => {
+        setScienceFactIndex(Math.floor(Math.random() * SCIENCE_FACTS.length));
+        setShowScienceBubble(true);
+        setIsExplaining(false);
+        setMascotEmotionOverride('thinking');
+        setTimeout(() => setMascotEmotionOverride('proud'), 1500);
+        setTimeout(() => setMascotEmotionOverride(null), 4000);
+      }, randomDelay);
+    }
+    return () => {
+      if (randomTimer) clearTimeout(randomTimer);
+    };
+  }, [showScienceBubble, isInteractingModalsOpen]);
 
   // Persistence & State Hook
   const { 
@@ -62,6 +196,41 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     getEmotion 
   } = useTamagotchi();
 
+  // Birthday Detection & Celebration Trigger
+  const isBirthdayToday = useMemo(() => {
+    if (!childProfile?.birthDate) return false;
+    const today = new Date();
+    return (
+      today.getDate() === childProfile.birthDate.day &&
+      today.getMonth() + 1 === childProfile.birthDate.month
+    );
+  }, [childProfile]);
+
+  useEffect(() => {
+    if (isBirthdayToday) {
+      try {
+        playCheerSound();
+      } catch {
+        // ignore
+      }
+      setMascotEmotionOverride('celebrating');
+    }
+  }, [isBirthdayToday]);
+
+  // Pawchi Daily Checklist & Habit Streak Hook
+  const {
+    completedCount: dailyCompletedCount,
+    totalTasks: dailyTotalTasks,
+    isAllCompleted: isDailyAllCompleted,
+    streak: dailyStreak,
+    tasks: dailyTasks,
+    claimedBonusToday: dailyClaimedBonusToday,
+    trackFeed: trackDailyFeed,
+    trackQuiz: trackDailyQuiz,
+    trackPet: trackDailyPet,
+    claimBonus: claimDailyBonus,
+  } = useDailyChecklist();
+
   // Carousel Hooks
   const playCarousel = useDraggableCarousel();
   const learnCarousel = useDraggableCarousel();
@@ -69,7 +238,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
   // Refs
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const emotionTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastTapTimeRef = useRef<number>(0);
   const mascotContainerRef = useRef<HTMLDivElement | null>(null);
   const viewContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -116,18 +284,22 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     registerInteraction();
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-    setMouseLookTarget({ x: x * 0.9, y: y * 0.9 });
+    const rawX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const rawY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    const clampedX = Math.max(-0.55, Math.min(0.55, rawX * 0.6));
+    const clampedY = Math.max(-0.55, Math.min(0.55, rawY * 0.6));
+    setMouseLookTarget({ x: clampedX, y: clampedY });
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     registerInteraction();
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = ((touch.clientY - rect.top) / rect.height) * 2 - 1;
-    setMouseLookTarget({ x: x * 0.9, y: y * 0.9 });
+    const rawX = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    const rawY = ((touch.clientY - rect.top) / rect.height) * 2 - 1;
+    const clampedX = Math.max(-0.55, Math.min(0.55, rawX * 0.6));
+    const clampedY = Math.max(-0.55, Math.min(0.55, rawY * 0.6));
+    setMouseLookTarget({ x: clampedX, y: clampedY });
   };
 
   useEffect(() => {
@@ -156,16 +328,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     if (selectedMode !== null) setSelectedMode(null);
   };
 
-  const handleSelectMode = (e: React.MouseEvent, mode: 'learn' | 'play') => {
-    e.stopPropagation();
-    registerInteraction();
-    playPopSound();
-    if (selectedMode === mode) {
-      travelToView(mode === 'learn' ? 1 : 2);
-    } else {
-      setSelectedMode(mode);
-    }
-  };
 
   const travelToView = (targetIndex: number) => {
     playPopSound();
@@ -182,6 +344,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     registerInteraction();
     playPopSound();
     setBounceKey((k) => k + 1);
+    trackDailyPet();
   };
 
   // UI Compute
@@ -190,13 +353,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     mascotEmotion: CharviEmotion;
   }>(() => {
     const baseEmotion = getEmotion();
-    if (dragLookTarget) return { lookTarget: dragLookTarget, mascotEmotion: mascotEmotionOverride || baseEmotion };
-    if (mascotEmotionOverride) return { lookTarget: { x: 0, y: -0.75 }, mascotEmotion: mascotEmotionOverride };
     if (isFeedingOpen) return { lookTarget: { x: 0, y: -0.9 }, mascotEmotion: 'happy' };
     if (isBubbleMenuOpen) return { lookTarget: { x: 0, y: -0.95 }, mascotEmotion: 'excited' };
-    if (isInteracting || isHovered) return { lookTarget: mouseLookTarget, mascotEmotion: baseEmotion };
+    if (isInteracting) return { lookTarget: mouseLookTarget, mascotEmotion: baseEmotion };
     return { lookTarget: { x: 0.28, y: -0.75 }, mascotEmotion: baseEmotion };
-  }, [dragLookTarget, mascotEmotionOverride, isFeedingOpen, isBubbleMenuOpen, isHovered, isInteracting, mouseLookTarget, getEmotion]);
+  }, [dragLookTarget, mascotEmotionOverride, isFeedingOpen, isBubbleMenuOpen, isInteracting, mouseLookTarget, getEmotion]);
 
   return (
     <div
@@ -205,27 +366,26 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
       onMouseMove={handleMouseMove}
       onTouchMove={handleTouchMove}
       onTouchStart={registerInteraction}
-      className="relative w-full h-full bg-white text-neutral-900 flex flex-col justify-between overflow-hidden select-none cursor-default"
+      className="relative w-full h-full bg-white text-neutral-900 flex flex-col justify-start overflow-hidden select-none cursor-default"
     >
-      <HabitatWorlds viewIndex={viewIndex} />
+      <HabitatWorlds />
+
+      {/* Birthday Celebration Banner */}
+      {isBirthdayToday && (
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-black text-xs tablet:text-sm py-2 px-4 shadow-md flex items-center justify-center gap-2 border-b-2 border-amber-300 z-30 tracking-wide"
+        >
+          <span>🥳 SELAMAT ULANG TAHUN, {childProfile?.name?.toUpperCase() || 'SI KECIL'}! 🎉🎂</span>
+        </motion.div>
+      )}
 
 
-      {/* Floating Navigation */}
-      <div className="px-4 tablet:px-6 pt-2 tablet:pt-3 z-20 flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-2">
-          {viewIndex === 0 ? (
-            <button
-              onClick={() => {
-                playPopSound();
-                setIsProfileModalOpen(true);
-              }}
-              className="min-h-[44px] tablet:min-h-[48px] flex items-center gap-2 px-3.5 tablet:px-4 py-2 rounded-2xl bg-white/95 border-2 border-sky-200/90 shadow-xs text-xs tablet:text-sm font-extrabold text-neutral-800 hover:border-sky-400 hover:text-sky-700 active:scale-95 transition-all cursor-pointer"
-              title="Profil Si Kecil"
-            >
-              <span className="text-base tablet:text-lg">🧒</span>
-              <span className="max-w-[90px] tablet:max-w-[140px] truncate">{childProfile?.name || 'Petualang Cilik'}</span>
-            </button>
-          ) : (
+      {/* Floating Navigation (Hidden on Homescreen viewIndex === 0 as requested) */}
+      {viewIndex !== 0 && (
+        <div className="px-4 tablet:px-6 pt-1.5 tablet:pt-2 pb-0 z-20 flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => travelToView(0)}
               className="min-h-[40px] tablet:min-h-[44px] flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-white/95 border-2 border-amber-300 shadow-xs text-xs tablet:text-sm font-black text-amber-900 hover:bg-amber-50 active:scale-95 transition-all cursor-pointer"
@@ -234,57 +394,34 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
               <span className="text-sm tablet:text-base">🏡</span>
               <span>Beranda</span>
             </button>
-          )}
-        </div>
-        <div className="flex items-center gap-3 pr-2">
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              playPopSound();
-              if (viewIndex !== 0) {
+          </div>
+          <div className="flex items-center gap-3 pr-2">
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                playPopSound();
                 travelToView(0);
-              } else {
-                if (isFeedingOpen) {
-                  setIsFeedingOpen(false);
-                  setIsBubbleMenuOpen(false);
-                } else {
-                  setIsBubbleMenuOpen((prev) => !prev);
-                }
-              }
-            }}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
-            animate={{ 
-              y: viewIndex === 0 && isBubbleMenuOpen ? -2 : 0,
-              scale: isBubbleMenuOpen ? 1.15 : viewIndex === 0 ? 1.05 : 0.95,
-            }}
-            transition={{ 
-              y: { type: 'spring', stiffness: 300, damping: 15 },
-              scale: { type: 'spring', stiffness: 300, damping: 15 }
-            }}
-            className={`min-h-[44px] min-w-[44px] tablet:min-h-[48px] tablet:min-w-[48px] relative p-2.5 tablet:p-3 rounded-2xl border-2 transition-all cursor-pointer shadow-xs flex items-center justify-center ${
-              isBubbleMenuOpen
-                ? 'bg-amber-400 border-amber-500 text-white shadow-lg ring-4 ring-amber-200'
-                : viewIndex === 0
-                  ? 'bg-amber-100 border-amber-400 text-amber-700 shadow-md hover:bg-amber-200'
-                  : 'bg-white/80 border-neutral-200 text-neutral-400 hover:border-neutral-300'
-            }`}
-            title="Menu Beri Makan Cincau"
-          >
-            <FruitBasketIcon className="w-5 h-5 tablet:w-6 tablet:h-6 drop-shadow-xs" />
-            {foodStock > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] tablet:text-xs font-black w-4.5 h-4.5 tablet:w-5 tablet:h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
-                {foodStock}
-              </span>
-            )}
-          </motion.button>
+              }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className="min-h-[44px] min-w-[44px] tablet:min-h-[48px] tablet:min-w-[48px] relative p-2.5 tablet:p-3 rounded-2xl border-2 bg-white/80 border-neutral-200 text-neutral-400 hover:border-neutral-300 transition-all cursor-pointer shadow-xs flex items-center justify-center"
+              title="Menu Beri Makan Cincau"
+            >
+              <FruitBasketIcon className="w-5 h-5 tablet:w-6 tablet:h-6 drop-shadow-xs" />
+              {foodStock > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] tablet:text-xs font-black w-4.5 h-4.5 tablet:w-5 tablet:h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                  {foodStock}
+                </span>
+              )}
+            </motion.button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Horizontal Sliding UI Track */}
       <div className={`w-full overflow-hidden relative z-20 ${
         viewIndex === 0
-          ? 'pt-2 tablet:pt-4 pb-1 tablet:pb-2'
+          ? 'h-full flex-1 flex flex-col justify-center pt-0.5 tablet:pt-1 pb-1 tablet:pb-2'
           : 'flex-1 flex flex-col justify-center pt-1 tablet:pt-3 pb-6 mobile-lg:pb-8 tablet:pb-10'
       }`}>
         <motion.div
@@ -296,102 +433,229 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
           }}
           transition={{ type: 'spring', damping: 26, stiffness: 120 }}
           style={{ width: '300%' }}
-          className="flex pointer-events-auto"
+          className="flex pointer-events-auto h-full"
         >
           {/* SLIDE 0: MAIN MENU */}
-          <div className={`w-1/3 flex-shrink-0 px-4 tablet:px-6 flex flex-col items-start relative ${
-            isLandscape ? 'w-1/3 max-w-none' : 'max-w-sm tablet:max-w-lg mx-auto'
-          }`}>
-            <div className={`flex flex-col items-start pt-1 tablet:pt-2.5 ${
-              isLandscape ? 'w-full max-w-[50%] tablet:max-w-[52%] tablet-lg:max-w-[55%] pl-1 tablet:pl-3' : 'w-full'
+          <div className="w-1/3 min-w-[33.333333%] max-w-[33.333333%] h-full flex-shrink-0 px-3 sm:px-4 tablet:px-6 flex flex-col items-center justify-center relative pt-2 sm:pt-3 tablet:pt-2 box-border">
+            <div className={`flex flex-col items-center justify-center my-auto w-full mx-auto ${
+              isLandscape 
+                ? 'max-w-full tablet:max-w-[96%] pl-0' 
+                : 'max-w-md tablet:max-w-2xl tablet-md:max-w-4xl desktop:max-w-5xl'
             }`}>
+              {/* Bento Action Cards: Belajar, Main Game, & Menggambar (Kurikulum Merdeka 3D Style) */}
               <motion.div
-                animate={{ y: [0, -4, 0] }}
-                transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
-                className="inline-block"
+                animate={{
+                  y: isFeedingOpen || isSalonModalOpen ? -140 : 0,
+                  opacity: isFeedingOpen || isSalonModalOpen ? 0 : 1,
+                  scale: isFeedingOpen || isSalonModalOpen ? 0.95 : 1,
+                }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="w-full mb-2 sm:mb-3 tablet:mb-4 overflow-visible pointer-events-auto"
               >
-                <motion.div
-                  onClick={(e) => handleSelectMode(e, 'learn')}
-                  whileHover={{ scale: 1.08, rotate: -2 }}
-                  whileTap={{ scale: 0.92, rotate: -6 }}
-                  animate={{
-                    scale: selectedMode === 'learn' ? 1.08 : selectedMode === 'play' ? 0.94 : 1,
-                    opacity: selectedMode === 'play' ? 0.7 : 1,
-                    rotate: selectedMode === 'learn' ? -1.5 : -3.5,
+                <BentoActionCards
+                  selectedMode={selectedMode}
+                  onSelectMode={(mode) => {
+                    registerInteraction();
+                    setSelectedMode(mode);
+                    if (mode === 'learn') {
+                      setIsToycadLearningRoomOpen(true);
+                    } else if (mode === 'play') {
+                      setIsToycadPlayRoomOpen(true);
+                    }
                   }}
-                  transition={{ type: 'spring', stiffness: 350, damping: 22 }}
-                  className={`relative inline-block text-white px-3.5 tablet:px-5 py-1 tablet:py-1.5 rounded-2xl font-extrabold text-xl tablet:text-3xl tracking-tight transition-colors duration-200 cursor-pointer select-none bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 shadow-md hover:shadow-xl ${
-                    selectedMode === 'learn' ? 'ring-4 ring-offset-2 ring-amber-400 shadow-xl' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>Belajar</span>
-                    <motion.span
-                      animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.2, 1] }}
-                      transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-                      className="inline-block text-lg tablet:text-2xl"
-                    >
-                      📚
-                    </motion.span>
-                  </div>
-                </motion.div>
+                  onOpenLearningRoom={() => {
+                    registerInteraction();
+                    setIsToycadLearningRoomOpen(true);
+                  }}
+                  onOpenPlayRoom={() => {
+                    registerInteraction();
+                    setIsToycadPlayRoomOpen(true);
+                  }}
+                  onOpenDrawingStudio={() => {
+                    registerInteraction();
+                    setIsDrawingStudioOpen(true);
+                  }}
+                  isCompact={isLandscape}
+                />
               </motion.div>
 
-              <motion.div
-                animate={{ y: [0, 4, 0] }}
-                transition={{ repeat: Infinity, duration: 3.6, ease: 'easeInOut', delay: 0.3 }}
-                className="inline-block mt-1.5 tablet:mt-2 ml-3 tablet:ml-8"
-              >
-                <motion.div
-                  onClick={(e) => handleSelectMode(e, 'play')}
-                  whileHover={{ scale: 1.08, rotate: 4 }}
-                  whileTap={{ scale: 0.92, rotate: 6 }}
-                  animate={{
-                    scale: selectedMode === 'play' ? 1.08 : selectedMode === 'learn' ? 0.94 : 1,
-                    opacity: selectedMode === 'learn' ? 0.7 : 1,
-                    rotate: selectedMode === 'play' ? 2.5 : 2.5,
-                  }}
-                  transition={{ type: 'spring', stiffness: 350, damping: 22 }}
-                  className={`relative inline-block text-white px-3.5 tablet:px-5 py-1 tablet:py-1.5 rounded-2xl font-extrabold text-xl tablet:text-3xl tracking-tight transition-colors duration-200 cursor-pointer select-none bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 shadow-md hover:shadow-xl ${
-                    selectedMode === 'play' ? 'ring-4 ring-offset-2 ring-emerald-400 shadow-xl' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>Bermain</span>
-                    <motion.span
-                      animate={{ rotate: [0, -15, 10, 0], scale: [1, 1.2, 1] }}
-                      transition={{ repeat: Infinity, duration: 2.8, ease: 'easeInOut', delay: 0.4 }}
-                      className="inline-block text-lg tablet:text-2xl"
-                    >
-                      🎮
-                    </motion.span>
-                  </div>
-                </motion.div>
-              </motion.div>
+              {/* Removed DailyChecklistWidget from here as it will be moved to a fixed position at bottom right */}
 
-              <div className="mt-2 tablet:mt-4 min-h-[48px] tablet:min-h-[72px] flex flex-col justify-center w-full">
+              <motion.div
+                animate={{
+                  y: isFeedingOpen || isSalonModalOpen ? -140 : 0,
+                  opacity: isFeedingOpen || isSalonModalOpen ? 0 : 1,
+                }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="mt-1 tablet:mt-2 w-full"
+              >
                 <AnimatePresence mode="wait">
-                  {selectedMode === null ? (
-                    <motion.div key="default" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="font-handwriting">
-                      <span className="text-base tablet:text-xl tablet-lg:text-2xl font-bold text-neutral-600 block leading-tight">apa yang kamu mau lakukan hari ini,</span>
-                      <span className="text-xl tablet:text-2xl tablet-lg:text-3xl font-extrabold text-neutral-900 tracking-tight block mt-0.5 truncate max-w-full">{childProfile?.name || 'Petualang Cilik'}? 🌟</span>
-                    </motion.div>
-                  ) : (
-                    <motion.div key="action" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="font-handwriting">
+                  {selectedMode !== null && (
+                    <motion.div key="action" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="font-handwriting mb-2">
                       <span className="text-xl tablet:text-2xl tablet-lg:text-3xl font-extrabold text-neutral-900 tracking-tight block leading-snug">
                         {selectedMode === 'learn' ? 'ayo kita belajar' : 'kamu yakin ingin bermain?'}
                       </span>
                       <motion.button
-                        onClick={() => travelToView(selectedMode === 'learn' ? 1 : 2)}
+                        onClick={() => {
+                          if (selectedMode === 'learn') {
+                            setIsToycadLearningRoomOpen(true);
+                          } else {
+                            setIsToycadPlayRoomOpen(true);
+                          }
+                        }}
                         className={`mt-2 px-3 tablet:px-4 py-1.5 tablet:py-2 bg-gradient-to-r ${selectedMode === 'learn' ? 'from-amber-500 to-orange-500 border-amber-300' : 'from-emerald-500 to-teal-500 border-emerald-300'} text-white rounded-2xl font-black text-xs tablet:text-sm shadow-md flex items-center gap-1.5 border-2 cursor-pointer active:scale-95 transition-all`}
                       >
                         <Sparkles className="w-3.5 h-3.5 tablet:w-4 tablet:h-4" />
-                        <span>{selectedMode === 'learn' ? 'Masuk ke Dunia Cincau!' : 'Masuk Arena Bermain!'} ▶</span>
+                        <span>{selectedMode === 'learn' ? 'Masuk ke Ruang Belajar 3D!' : 'Buka Peta Petualangan Bermain! 🗺️'} ▶</span>
                       </motion.button>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+
+                {/* TABLET VIEW (>= tablet): 12-col layout aligned with Bento Grid */}
+                <div className="hidden tablet:grid tablet-md:grid tablet:grid-cols-12 tablet-md:grid-cols-12 tablet:gap-4 tablet-md:gap-5 w-full items-end mt-1">
+                  {/* LEFT SIDE (tablet:col-span-7) under Membaca */}
+                  <div className="tablet:col-span-7 tablet-md:col-span-7 flex flex-col items-start gap-2 w-full">
+                    {/* Small Cincau (Anak Cincau) with Misi Harian Bubble shifted to the left */}
+                    <div className="w-full flex items-center justify-start">
+                      <DailyChecklistWidget
+                        isInline={true}
+                        completedCount={dailyCompletedCount}
+                        totalTasks={dailyTotalTasks}
+                        isAllCompleted={isDailyAllCompleted}
+                        streak={dailyStreak}
+                        tasks={dailyTasks}
+                        claimedBonusToday={dailyClaimedBonusToday}
+                        onClaimBonus={() => {
+                          claimDailyBonus();
+                          addMisiRewards(1, 10);
+                        }}
+                        onOpenFeedMenu={() => {
+                          if (viewIndex !== 0) travelToView(0);
+                          setIsBubbleMenuOpen(true);
+                        }}
+                        onOpenQuizMenu={() => {
+                          setSelectedCategory(undefined);
+                          setIsQuizModalOpen(true);
+                        }}
+                        onPetMascotAction={() => {
+                          trackDailyPet();
+                          setBounceKey((k) => k + 1);
+                          setMascotEmotionOverride('excited');
+                          setTimeout(() => setMascotEmotionOverride(null), 2000);
+                        }}
+                        onOpenChange={(open) => setIsDailyChecklistOpen(open)}
+                      />
+                    </div>
+
+                    {/* Compact Fakta Seru Ayah Cincau Bubble filling the left area */}
+                    <ScienceFactBubble
+                      isVisible={viewIndex === 0 && showScienceBubble}
+                      scienceFactIndex={scienceFactIndex}
+                      isExplaining={isExplaining}
+                      displayedText={displayedText}
+                      isTyping={isTyping}
+                      isInteractingModalsOpen={isInteractingModalsOpen}
+                      totalFacts={SCIENCE_FACTS.length}
+                      onExplainingChange={setIsExplaining}
+                      onFactIndexChange={setScienceFactIndex}
+                    />
+                  </div>
+
+                  {/* RIGHT SIDE (tablet:col-span-5) under Menggambar, flush right */}
+                  <div className="tablet:col-span-5 tablet-md:col-span-5 flex flex-row items-end justify-end gap-3 w-full pr-0.5">
+                    {/* Large Cincau Mascot (Ayah Cincau) placed beside Navigation Bar */}
+                    <motion.div
+                      ref={mascotContainerRef}
+                      onClick={handleCincauTap}
+                      className="pointer-events-auto cursor-pointer flex flex-col justify-end items-center"
+                    >
+                      <motion.div
+                        key={`mascot-bounce-${bounceKey}`}
+                        animate={{ y: [0, -26, 0] }}
+                        transition={{ duration: 0.48, ease: [0.175, 0.885, 0.32, 1.275] }}
+                        className="w-full flex justify-center"
+                      >
+                        <CharviMascot
+                          variant="large-bottom"
+                          theme={mascotTheme}
+                          emotion={mascotEmotion}
+                          onEmotionChange={(emo) => {
+                            setMascotEmotionOverride(emo === 'idle' ? null : emo);
+                          }}
+                          isInteracting={isInteracting || selectedMode !== null || isFeedingOpen || isBubbleMenuOpen}
+                          lookTarget={lookTarget}
+                          className="w-full h-auto max-w-[145px] tablet:max-w-[170px] tablet-md:max-w-[185px] max-h-[28vh] tablet:max-h-[32vh] drop-shadow-2xl"
+                        />
+                      </motion.div>
+                    </motion.div>
+
+                    {/* Navigation Bar flush to the right edge */}
+                    <div className="flex flex-col items-end shrink-0">
+                      <CincauNavBar
+                        hp={energy}
+                        totalFoodCount={foodStock}
+                        childProfile={childProfile}
+                        onOpenProfile={() => setIsProfileModalOpen(true)}
+                        onOpenSalon={() => setIsSalonModalOpen(true)}
+                        onOpenFeeding={() => {
+                          setIsBubbleMenuOpen(false);
+                          setIsFeedingOpen(true);
+                        }}
+                        onPetAction={() => {
+                          if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
+                          trackDailyPet();
+                          feed();
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* MOBILE VIEW (< tablet) */}
+                <div className="tablet:hidden tablet-md:hidden flex flex-col items-center w-full gap-2 mt-1">
+                  <DailyChecklistWidget
+                    isInline={true}
+                    completedCount={dailyCompletedCount}
+                    totalTasks={dailyTotalTasks}
+                    isAllCompleted={isDailyAllCompleted}
+                    streak={dailyStreak}
+                    tasks={dailyTasks}
+                    claimedBonusToday={dailyClaimedBonusToday}
+                    onClaimBonus={() => {
+                      claimDailyBonus();
+                      addMisiRewards(1, 10);
+                    }}
+                    onOpenFeedMenu={() => {
+                      if (viewIndex !== 0) travelToView(0);
+                      setIsBubbleMenuOpen(true);
+                    }}
+                    onOpenQuizMenu={() => {
+                      setSelectedCategory(undefined);
+                      setIsQuizModalOpen(true);
+                    }}
+                    onPetMascotAction={() => {
+                      trackDailyPet();
+                      setBounceKey((k) => k + 1);
+                      setMascotEmotionOverride('excited');
+                      setTimeout(() => setMascotEmotionOverride(null), 2000);
+                    }}
+                    onOpenChange={(open) => setIsDailyChecklistOpen(open)}
+                  />
+
+                  <ScienceFactBubble
+                    isVisible={viewIndex === 0 && showScienceBubble}
+                    scienceFactIndex={scienceFactIndex}
+                    isExplaining={isExplaining}
+                    displayedText={displayedText}
+                    isTyping={isTyping}
+                    isInteractingModalsOpen={isInteractingModalsOpen}
+                    totalFacts={SCIENCE_FACTS.length}
+                    onExplainingChange={setIsExplaining}
+                    onFactIndexChange={setScienceFactIndex}
+                  />
+                </div>
+              </motion.div>
             </div>
           </div>
 
@@ -417,6 +681,49 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
               </span>
             </div>
 
+            {/* Toycad / MerdekaKids 3D Learning Room Banner */}
+            <div className="w-full mb-2.5">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  playPopSound();
+                  setIsToycadLearningRoomOpen(true);
+                }}
+                className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-black text-xs tablet:text-sm shadow-md flex items-center justify-between border-2 border-amber-300 cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">🚀</span>
+                  <div className="text-left">
+                    <span>Ruang Belajar 3D Tactile Play (MerdekaKids) ✨</span>
+                    <p className="text-[10px] text-amber-100 font-medium">Modul 3D interaktif, Pena Pintar stylus & katalog kurikulum lengkap!</p>
+                  </div>
+                </div>
+                <span className="bg-white/20 px-3 py-1 rounded-xl text-xs">Buka Ruang ➔</span>
+              </motion.button>
+            </div>
+
+            <div className="w-full mb-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  playPopSound();
+                  setIsToycadLearningRoomOpen(true);
+                }}
+                className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 text-white font-black text-xs tablet:text-sm shadow-md flex items-center justify-between border-2 border-emerald-400 cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">🌿</span>
+                  <div className="text-left">
+                    <span>Eksplorasi Dunia Pelajaran (World Wonders Style) ✨</span>
+                    <p className="text-[10px] text-emerald-200 font-medium">Klik untuk menjelajah mata pelajaran dengan karakter 3D & video!</p>
+                  </div>
+                </div>
+                <span className="bg-white/20 px-3 py-1 rounded-xl text-xs">Buka ➔</span>
+              </motion.button>
+            </div>
+
             <div className="w-full relative z-20 my-auto">
               <div
                 ref={learnCarousel.carouselRef}
@@ -424,7 +731,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                 onMouseMove={learnCarousel.handleMouseMove}
                 onMouseUp={learnCarousel.handleMouseUp}
                 onMouseLeave={learnCarousel.handleMouseUp}
-                className="w-full flex gap-3.5 mobile-lg:gap-4 tablet:gap-5 overflow-x-auto pb-5 pt-1.5 px-1 snap-x snap-mandatory scroll-smooth cursor-grab active:cursor-grabbing select-none no-scrollbar"
+                className="w-full flex gap-3.5 mobile-lg:gap-4 tablet:gap-5 overflow-x-auto pb-5 pt-3 px-2 -mt-1.5 snap-x snap-mandatory scroll-smooth cursor-grab active:cursor-grabbing select-none no-scrollbar"
               >
                 {LEARN_CARDS.map((card) => (
                   <LearnCard 
@@ -432,6 +739,8 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                     card={card} 
                     onClick={() => {
                       playPopSound();
+                      setSelectedCategory(card.id);
+                      setIsQuizModalOpen(true);
                       setMascotEmotionOverride('excited');
                       setTimeout(() => setMascotEmotionOverride(null), 2600);
                     }} 
@@ -463,6 +772,28 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
               </span>
             </div>
 
+            {/* Toycad / MerdekaKids 3D Play Room Banner */}
+            <div className="w-full mb-2.5">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  playPopSound();
+                  setIsToycadPlayRoomOpen(true);
+                }}
+                className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white font-black text-xs tablet:text-sm shadow-md flex items-center justify-between border-2 border-emerald-300 cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">🗺️</span>
+                  <div className="text-left">
+                    <span>Peta Petualangan Ruang Bermain (Interactive Map) ✨</span>
+                    <p className="text-[10px] text-emerald-100 font-medium">Jelajahi kepulauan nusantara, temukan pos bermain & taklukkan level!</p>
+                  </div>
+                </div>
+                <span className="bg-white/20 px-3 py-1 rounded-xl text-xs">Buka Peta ➔</span>
+              </motion.button>
+            </div>
+
             <div className="w-full relative z-20 my-auto">
               <div
                 ref={playCarousel.carouselRef}
@@ -470,7 +801,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                 onMouseMove={playCarousel.handleMouseMove}
                 onMouseUp={playCarousel.handleMouseUp}
                 onMouseLeave={playCarousel.handleMouseUp}
-                className="w-full flex gap-3.5 mobile-lg:gap-4 tablet:gap-5 overflow-x-auto pb-5 pt-1.5 px-1 snap-x snap-mandatory scroll-smooth cursor-grab active:cursor-grabbing select-none no-scrollbar"
+                className="w-full flex gap-3.5 mobile-lg:gap-4 tablet:gap-5 overflow-x-auto pb-5 pt-3 px-2 -mt-1.5 snap-x snap-mandatory scroll-smooth cursor-grab active:cursor-grabbing select-none no-scrollbar"
               >
                 {PLAY_CARDS.map((card) => (
                   <PlayCard 
@@ -478,12 +809,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                     card={card} 
                     onClick={() => {
                       playPopSound();
-                      if (card.id === 'fruit-catch') {
-                        setActiveMinigame('apple-catch');
-                        return;
+                      if (card.id === 'coloring-book') {
+                        setIsDrawingStudioOpen(true);
+                      } else {
+                        setIsToycadPlayRoomOpen(true);
                       }
-                      setMascotEmotionOverride('excited');
-                      setTimeout(() => setMascotEmotionOverride(null), 2600);
                     }} 
                   />
                 ))}
@@ -494,47 +824,47 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
       </div>
 
       {/* Mascot Feeding Overlay (Hanya di Home Screen: viewIndex === 0) */}
-      <CincauFeedingOverlay
-        isMenuOpen={isBubbleMenuOpen && viewIndex === 0}
-        isFeedingOpen={isFeedingOpen && viewIndex === 0}
-        onOpenMenu={() => {
-          if (viewIndex === 0) setIsBubbleMenuOpen(true);
-        }}
-        onCloseMenu={() => setIsBubbleMenuOpen(false)}
-        onOpenFeeding={() => {
-          if (viewIndex === 0) {
+      {viewIndex === 0 && (
+        <CincauFeedingOverlay
+          isFeedingOpen={isFeedingOpen}
+          onOpenFeeding={() => {
             setIsBubbleMenuOpen(false);
             setIsFeedingOpen(true);
-          }
-        }}
-        onCloseFeeding={() => setIsFeedingOpen(false)}
-        onFeedSuccess={() => {
-          if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
-          feed();
-        }}
-        onPetMascot={() => {
-          if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
-        }}
-        onHpChange={() => {}} // Hook handles internal HP/Energy
-        hp={energy}
-        setHp={() => {}}
-        onMascotEmotionChange={(emo) => {
-          if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
-          setMascotEmotionOverride(emo === 'idle' ? null : emo);
-        }}
-        onLookTargetChange={(target) => setDragLookTarget(target)}
-        mascotContainerRef={mascotContainerRef}
-        isLandscapeHomescreen={isLandscape && viewIndex === 0}
-      />
+          }}
+          onCloseFeeding={() => setIsFeedingOpen(false)}
+          onFeedSuccess={() => {
+            if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
+            feed();
+            trackDailyFeed();
+          }}
+          onPetMascot={() => {
+            if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
+            trackDailyPet();
+          }}
+          hp={energy}
+          setHp={() => {}}
+          onMascotEmotionChange={(emo) => {
+            if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
+            setMascotEmotionOverride(emo === 'idle' ? null : emo);
+          }}
+          onLookTargetChange={(target) => setDragLookTarget(target)}
+          mascotContainerRef={mascotContainerRef}
+          isLandscapeHomescreen={isLandscape}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
+          onOpenSalon={() => setIsSalonModalOpen(true)}
+          inventory={{ honey: foodStock, apple: foodStock, watermelon: foodStock }}
+          childProfile={childProfile}
+        />
+      )}
 
       {/* Persistent Mascot (Hanya di Beranda: viewIndex === 0) */}
       {viewIndex === 0 && (
         <motion.div
           ref={mascotContainerRef}
           onClick={handleCincauTap}
-          className={`pointer-events-auto cursor-pointer z-10 min-h-0 ${
+          className={`tablet:hidden tablet-md:hidden pointer-events-auto cursor-pointer z-10 min-h-0 ${
             isLandscape
-              ? 'absolute right-2 tablet:right-6 bottom-2 tablet:bottom-4 w-[48%] tablet:w-[46%] tablet-lg:w-[44%] max-w-[380px] tablet-lg:max-w-[440px] flex flex-col justify-end items-end translate-y-0'
+              ? 'absolute left-2 tablet:left-6 bottom-2 tablet:bottom-4 w-[34%] tablet:w-[28%] tablet-lg:w-[26%] max-w-[200px] tablet-lg:max-w-[260px] flex flex-col justify-end items-start translate-y-0'
               : 'relative w-full flex-1 flex flex-col justify-end items-center pb-4 mobile-lg:pb-6 tablet:pb-8 translate-y-[-2%] mobile-lg:translate-y-[-1%] tablet:translate-y-0'
           }`}
         >
@@ -550,39 +880,89 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
               variant="large-bottom"
               theme={mascotTheme}
               emotion={mascotEmotion}
-              isInteracting={isInteracting || isHovered || selectedMode !== null || isFeedingOpen || isBubbleMenuOpen}
+              onEmotionChange={(emo) => {
+                setMascotEmotionOverride(emo === 'idle' ? null : emo);
+              }}
+              isInteracting={isInteracting || selectedMode !== null || isFeedingOpen || isBubbleMenuOpen}
               lookTarget={
                 isLandscape && !mouseLookTarget
-                  ? { x: -0.6, y: -0.2 } // Di homescreen landscape, Cincau ramah menatap ke arah menu belajar & bermain di sebelah kiri
+                  ? { x: 0.6, y: -0.2 } // Di homescreen landscape, Cincau ramah menatap ke arah kanan (ke arah menu)
                   : lookTarget
               }
               className={`w-full h-auto drop-shadow-2xl ${
                 isLandscape
-                  ? 'max-w-[260px] tablet:max-w-[360px] tablet-lg:max-w-[420px] max-h-[66vh] tablet:max-h-[76vh] ml-auto mr-0'
-                  : 'max-w-[310px] mobile-lg:max-w-[360px] tablet:max-w-[460px] max-h-[46vh] tablet:max-h-[54vh] mx-auto'
+                  ? 'max-w-[140px] tablet:max-w-[210px] tablet-lg:max-w-[250px] max-h-[45vh] tablet:max-h-[50vh] ml-0 mr-auto'
+                  : 'max-w-[220px] mobile-lg:max-w-[260px] tablet:max-w-[320px] max-h-[35vh] tablet:max-h-[44vh] mx-auto'
               }`}
             />
           </motion.div>
         </motion.div>
       )}
 
+      {/* Anak Cincau & Daily Checklist (Fixed at Bottom Right above Profile) */}
+      {viewIndex === 0 && (
+        <DailyChecklistWidget
+          isInline={false}
+          className="z-40 tablet:hidden tablet-md:hidden"
+          completedCount={dailyCompletedCount}
+          totalTasks={dailyTotalTasks}
+          isAllCompleted={isDailyAllCompleted}
+          streak={dailyStreak}
+          tasks={dailyTasks}
+          claimedBonusToday={dailyClaimedBonusToday}
+          onClaimBonus={() => {
+            claimDailyBonus();
+            addMisiRewards(1, 10);
+          }}
+          onOpenFeedMenu={() => {
+            if (viewIndex !== 0) travelToView(0);
+            setIsBubbleMenuOpen(true);
+          }}
+          onOpenQuizMenu={() => {
+            setSelectedCategory(undefined);
+            setIsQuizModalOpen(true);
+          }}
+          onPetMascotAction={() => {
+            trackDailyPet();
+            setBounceKey((k) => k + 1);
+            setMascotEmotionOverride('excited');
+            setTimeout(() => setMascotEmotionOverride(null), 2000);
+          }}
+          onOpenChange={(open) => setIsDailyChecklistOpen(open)}
+        />
+      )}
+
+      {/* Cincau Salon & Style Customizer Overlay */}
+      <CincauSalonOverlay
+        isOpen={isSalonModalOpen}
+        onClose={() => setIsSalonModalOpen(false)}
+        mascotTheme={mascotTheme}
+        onToggleTheme={onToggleTheme}
+        selectedAccessory="none"
+        onSelectAccessory={() => {}}
+        isLandscapeHomescreen={isLandscape && viewIndex === 0}
+      />
+
+      {/* PAWCHI-STYLE DAILY CHECKLIST WIDGET (Kartu Aktivitas & Jadwal Harian) */}
+
+
       {/* Minigame Overlay */}
       <AnimatePresence>
-        {activeMinigame === 'apple-catch' && (
-          <AppleCatchMinigame
-            mascotTheme={mascotTheme}
-            onClose={(earnedFood, earnedStars) => {
-              setActiveMinigame(null);
-              addMisiRewards(earnedFood, earnedStars);
-              if (earnedFood > 0 || earnedStars > 0) {
-                playCheerSound();
-                setMascotEmotionOverride('excited');
-                setTimeout(() => setMascotEmotionOverride(null), 3000);
-              }
-            }}
-          />
-        )}
       </AnimatePresence>
+
+      {/* Interactive Learning Mission Quiz Modal */}
+      <LearningMissionModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        fase={childProfile?.fase || 'A'}
+        category={selectedCategory}
+        onMissionSuccess={(earnedFood, earnedStars) => {
+          addMisiRewards(earnedFood, earnedStars);
+          trackDailyQuiz();
+          setMascotEmotionOverride('excited');
+          setTimeout(() => setMascotEmotionOverride(null), 2800);
+        }}
+      />
 
       {/* Simple Child Profile Modal */}
       <ChildProfileModal
@@ -596,6 +976,33 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
           if (onOpenRegistration) onOpenRegistration();
         }}
         mascotTheme={mascotTheme}
+      />
+
+      {/* Dedicated Tactile Polygonal Play Learning Room (ToyCAD / MerdekaKids Aesthetic - No Bottom Nav Bar) */}
+      <AnimatePresence>
+        {isToycadLearningRoomOpen && (
+          <ToycadLearningRoom
+            onClose={() => setIsToycadLearningRoomOpen(false)}
+            mascotTheme={mascotTheme}
+            childProfile={childProfile}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Dedicated Tactile Polygonal Ruang Bermain 3D (ToyCAD / MerdekaKids Aesthetic) */}
+      <AnimatePresence>
+        {isToycadPlayRoomOpen && (
+          <ToycadPlayRoom
+            onClose={() => setIsToycadPlayRoomOpen(false)}
+            mascotTheme={mascotTheme}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Pena Pintar Studio - Interactive Canvas Drawing Modal */}
+      <DrawingStudioModal
+        isOpen={isDrawingStudioOpen}
+        onClose={() => setIsDrawingStudioOpen(false)}
       />
     </div>
   );

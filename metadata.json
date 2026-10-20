@@ -1,6 +1,6 @@
 {
-  "name": "Cincau : teman bealajar AI",
-  "description": "Charvi — Interactive notes and AI educational companion app featuring an expressive animated mascot that emerges from the bottom and reacts to your thoughts and notes.",
+  "name": "Rumah Belajar Cincau",
+  "description": "Aplikasi pendamping pendidikan AI untuk anak SD Indonesia, berfokus pada penguasaan materi akademik Kurikulum Merdeka dengan maskot Cincau sebagai mentor bijak.",
   "requestFramePermissions": [
     "camera",
     "microphone"
